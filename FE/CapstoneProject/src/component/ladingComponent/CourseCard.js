@@ -49,7 +49,7 @@ export const CourseCard = memo(({ course, textBtn = "Get It Now", courseId = -1 
     };
 
     return (
-        <div className="course-card w-full sm:w-1/2 md:w-1/3 lg:w-1/4 px-4 mb-8">
+        <div className="course-card w-full h-full sm:w-1/2 md:w-1/3 lg:w-1/2 px-4 mb-8">
         <div className="b-shadow bg-white rounded-lg border border-gray-100 overflow-hidden">
             {/* Phần chứa hình ảnh */}
             <div className="relative">
@@ -61,7 +61,7 @@ export const CourseCard = memo(({ course, textBtn = "Get It Now", courseId = -1 
             </div>
     
             {/* Phần chứa Badge (chuyển xuống dưới) */}
-            <div className="px-4 mt-2">
+            <div className="px-4 mt-2 h-2">
                 {course.categories.length > 0 && (
                     <Badge keyData={course.categories[0].id}>
                         {course.categories[0].name}

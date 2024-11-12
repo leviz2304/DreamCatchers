@@ -6,6 +6,7 @@ import * as userApi from "../../../api/apiService/authService.js";
 import logoPage from "../../../assets/images/logo.png";
 import { useSelector } from "react-redux";
 import Comment from "../../../component/comment/index.js";
+import { comma } from "postcss/lib/list";
 
 let timerId = null;
 const debounce = (func, delay = 1000) => {
@@ -32,7 +33,7 @@ const CourseHero = ({ video = "", thumbnail }) => {
                     controls
                     className={clsx(
                         styles.videoPlayer,
-                        "cursor-pointer h-full w-full object-contain bg-black"
+                        "cursor-pointer h-full w-full object-contain bg-black outline-none "
                     )}
                 >
                     <source src={video} type="video/mp4" />
@@ -43,16 +44,27 @@ const CourseHero = ({ video = "", thumbnail }) => {
                     <iframe
                         title="Video"
                         src={videoId}
-                        frameBorder="0"
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                         allowFullScreen
-                        className={clsx(styles.videoPlayer, "rounded-lg")}
+                        className={clsx(styles.videoPlayer)}
                     ></iframe>
                 )}
             {video === "" ? <img src={thumbnail} alt="Course thumbnail" /> : ""}
         </section>
     );
 };
+
+const CourseHeader = ({titleHeader, lastUpdate, commentTotal, watchingCount }) => {
+    return (
+        <section className={clsx(styles.titleHeader)}>
+            <div className={clsx(styles.textHeader)}>{titleHeader}</div>
+
+        </section>
+    )
+}
+const CouseDetails = ({Description, Notes, AttachFiles}) => {
+
+}
 
 const initFormData = {
     course: {
@@ -266,7 +278,7 @@ function DetailCourse() {
             </div>
             <main className={clsx(styles.uiUxCourse)}>
                 <div className={clsx(styles.sectionVideo, "w-full")}>
-                    <div className={clsx("row")}>
+                    <div className={clsx("row", "mx-0")}>
                         <div
                             className={clsx(styles.videoContainer, "col-lg-9")}
                         >
@@ -274,6 +286,12 @@ function DetailCourse() {
                                 video={currentVideoUrl}
                                 thumbnail={progressObject.course.thumbnail}
                             />
+
+                            <CourseHeader
+                                titleHeader={progressObject.course.title}
+
+                            />
+                        
 
                             {/* //!------------ NOTE ----------------*/}
                             <button
