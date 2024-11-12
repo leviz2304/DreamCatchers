@@ -231,9 +231,9 @@ export default function Header() {
                                         strokeWidth="2"
                                         strokeLinecap="round"
                                         strokeLinejoin="round"
-                                        className="w-6 h-6 text-gray-700"
+                                        className="w-7 h-7 text-gray-700"
                                     >
-                                        <path d="M20.8 4.6c-1.5-1.7-4-1.8-5.6 0l-.7.7-.7-.7c-1.5-1.7-4-1.8-5.6 0-1.7 1.5-1.8 4 0 5.6l6.3 6.3 6.3-6.3c1.7-1.5 1.8-4.1 0-5.6z"></path>
+                                        <path d="M18.2 6.6c-1.5-1.7-4-1.8-5.6 0l-.7.7-.7-.7c-1.5-1.7-4-1.8-5.6 0-1.7 1.5-1.8 4 0 5.6l6.3 6.3 6.3-6.3c1.7-1.5 1.8-4.1 0-5.6z"></path>
                                     </svg>
                                 </div>
                         
