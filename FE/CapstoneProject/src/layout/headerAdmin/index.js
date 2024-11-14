@@ -1,6 +1,6 @@
 import NavigationTopBar from "../../component/dashboard/NavigationTopBar";
 import styles from "./HeaderAdmin.module.scss";
-import logo from "../../assets/images/logo.png";
+import logo from "../../assets/images/E-tutor_logo.png";
 import clsx from "clsx";
 import { Link } from "react-router-dom";
 import { useSelector } from "react-redux";
@@ -15,7 +15,7 @@ function AdminHeader() {
         >
             <main className={styles.homePage}>
                 <section className={styles.contentArea}>
-                    <NavigationTopBar />
+                    {/* <NavigationTopBar /> */}
                 </section>
             </main>
             <div
@@ -28,8 +28,9 @@ function AdminHeader() {
                         <div className={styles.logo}>
                             <img src={logo} alt="Logo Dream Chasers" />
                             <h3 className={styles.brightWeb}>
-                                <span>Dream</span>
-                                <span className={styles.stack}> Chasers</span>
+                                {/* <span>Dream</span> */}
+
+                                <span className={styles.stack}>Dream Catchers</span>
                             </h3>
                         </div>
                     </Link>

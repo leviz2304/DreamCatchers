@@ -97,7 +97,7 @@ export default function Header() {
     return (
         !isAdmin && (
             <div className="z-9999 relative w-1400px flex justify-center">
-               <div className="w-full fixed top-0 bg-black text-white z-50">
+               {/* <div className="w-full fixed top-0 bg-black text-white z-50">
                     <nav className="flex justify-start py-2">
                         <Link
                             className={`nav-header ${
@@ -140,42 +140,54 @@ export default function Header() {
                             Become an Instructor
                         </Link>
                     </nav>
-                </div>
+                </div> */}
 
                 <header
                     className={clsx(
-                        ` ${styles.boxShadow} rounded-b-xl z-header w-1400  bg-white mt-10 items-center fixed flex gap-5 justify-between px-16 pt-4 pb-2.5 text-sm leading-5 border-b border-gray-100 border-solid  max-md:flex-wrap max-md:px-5 max-md:max-w-full`
+                        ` ${styles.boxShadow} rounded-full z-header h-[50px] w-1400 bg-white mt-1 fixed flex items-center justify-between px-5 text-sm leading-5 border-b border-gray-100 mx-auto max-md:flex-wrap max-md:px-5 max-md:max-w-full`
                     )}
                 >
-                    <div className="flex gap-5 justify-between self-start text-neutral-800">
+                    <div className="flex gap-5 justify-between self-start pt-2 text-neutral-800">
                         <Link to="/">
-                          
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2">
                             <img
                                 loading="lazy"
                                 src={logo}
                                 alt="Logo"
-                                className="shrink-0 w-10 aspect-square"
+                                className="shrink-0 h-8 w-8 aspect-square"
                             />
-                            <p className="text-center text-lg font-semibold leading-none self-center m-0	">Dream-Catcher</p>
+                            <p className="text-base font-semibold m-0">Dream-Catcher</p>
                         </div>
                         </Link>
-
-                        <div className="flex items-center">
-                            <div className="w-40 mr-5">
-                                <Select
-                                    // onChange={handleSelectChange}
-                                    getOptionLabel={(x) => x.name}
-                                    getOptionValue={(x) => x.id}
-                                    options={categories}
-                                    styles={selectStyles}
-                                    placeholder="Categories"
-                                />
-                            </div>
-                            <SearchBar></SearchBar>
-                        </div>
                     </div>
-
+                    <nav className="flex justify-start py-2">
+                        <Link
+                            className={`nav-header ${
+                                window.location.pathname === "/" ? "nav-header-active" : ""
+                            } px-4 py-2 text-black text-sm`}
+                            to="/"
+                        >
+                            Home
+                        </Link>
+                        <Link
+                            className={`nav-header ${
+                                window.location.pathname === "/courses" ? "nav-header-active" : ""
+                            } px-4 py-2 text-black text-sm`}
+                            to="/courses"
+                        >
+                            Courses
+                        </Link>
+                    
+                       
+                        <Link
+                            className={`nav-header ${
+                                window.location.pathname === "/instructor" ? "nav-header-active" : ""
+                            } px-4 py-2 text-black text-sm`}
+                            to="/instructor"
+                        >
+                            Become an Instructor
+                        </Link>
+                    </nav>
                     <div className="flex gap-3 justify-between">
                         {!user ? (
                             <>
@@ -185,8 +197,8 @@ export default function Header() {
                                     id="signUp"
                                     className={`"cursor-pointer" ${
                                         page === "sign-up"
-                                            ? "justify-center px-6 py-3 whitespace-nowrap rounded-md max-md:px-5 bg-black text-white"
-                                            : "my-auto px-6 py-3 text-neutral-800 whitespace-nowrap rounded-md"
+                                            ? "px-4 py-1 rounded-md bg-black text-white"
+                                            : "px-4 py-1 text-neutral-800 rounded-md"
                                     }`}
                                 >
                                     Sign Up
@@ -197,8 +209,8 @@ export default function Header() {
                                     id="login"
                                     className={`"cursor-pointer" ${
                                         page === "login"
-                                            ? "justify-center px-6 py-3 whitespace-nowrap rounded-md max-md:px-5 bg-black text-white"
-                                            : "my-auto px-6 py-3 text-neutral-800 whitespace-nowrap rounded-md"
+                                            ? "px-4 py-2 rounded-full bg-black text-white"
+                                            : "px-4 py-2 text-neutral-800 rounded-md"
                                     }`}
                                 >
                                     Login
@@ -206,6 +218,19 @@ export default function Header() {
                             </>
                         ) : (
                             <>
+                            <div className="flex items-center">
+                            {/* <div className="w-35 mr-2">
+                                <Select
+                                    // onChange={handleSelectChange}
+                                    getOptionLabel={(x) => x.name}
+                                    getOptionValue={(x) => x.id}
+                                    options={categories}
+                                    styles={selectStyles}
+                                    placeholder="Categories"
+                                />
+                            </div> */}
+                            <SearchBar></SearchBar>
+                        </div>
                             <div className={clsx(styles.notification, "flex items-center gap-5")}>
                                 {/* Notification Icon */}
                                 <div className="relative cursor-pointer">

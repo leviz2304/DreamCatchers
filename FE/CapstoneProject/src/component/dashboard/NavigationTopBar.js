@@ -1,9 +1,10 @@
 import styles from "./NavigationTopBar.module.scss";
-import Avatar from "../../assets/images/avatar_25.jpg";
+import Avatar from "../../assets/images/Avatar.png";
 import { useSelector } from "react-redux";
 import clsx from "clsx";
 import NotificationItem from "../notificationItem";
 import Dropdown from "../dropDown";
+import SearchBar from "../search"
 const NavigationTopBar = () => {
     const user = useSelector((state) => state.login.user);
     return (
@@ -13,6 +14,7 @@ const NavigationTopBar = () => {
                 <div className={styles.div}></div>
                 <div className={styles.navLeftWrapper}></div>
                 <div className={styles.navRight}>
+                <SearchBar/>
                     <div className={styles.profile}>
                         <div
                             className={clsx(
@@ -28,6 +30,8 @@ const NavigationTopBar = () => {
                                 }
                             ></NotificationItem>
                         </div>
+                       
+
                         <div className={styles.userInfo}>
                             <div className={styles.userName}>
                                 <b
@@ -40,7 +44,7 @@ const NavigationTopBar = () => {
                                         user.firstName + " " + user.lastName}
                                 </b>
                                 <div className={clsx(styles.admin, "")}>
-                                    Admin
+                                    Role
                                 </div>
                             </div>
                         </div>

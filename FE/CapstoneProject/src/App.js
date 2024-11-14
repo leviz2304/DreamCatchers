@@ -16,6 +16,7 @@ import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import Interceptors from "./Interceptor";
 import loginSlice from "./redux/reducers/loginSlice";
+import SidebarWithBurgerMenu from "./component/dashboard/Sidebar";
 const PrivateWrapper = ({ isAuthenticated }) => {
     const dispatch = useDispatch();
     if (isAuthenticated) {
@@ -51,7 +52,7 @@ function App() {
                         element={
                             <>
                                 <Header />
-                                <div className={clsx("pt-header")}>
+                                <div className={clsx()}>
                                     <route.component />
                                 </div>
                             </>
@@ -101,8 +102,11 @@ function App() {
                                 <>
                                     <HeaderAdmin></HeaderAdmin>
                                     <div className="flex bg-white">
-                                        <LeftNavDash></LeftNavDash>
-                                        <div
+                                        {/* <LeftNavDash></LeftNavDash> */}
+                                        <div className="mt-20">
+                                        <SidebarWithBurgerMenu/>
+                                        </div>
+                                                                            <div
                                             className={clsx(
                                                 styles.adminContent
                                             )}

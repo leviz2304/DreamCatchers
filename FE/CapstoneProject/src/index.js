@@ -7,10 +7,12 @@ import { Provider } from "react-redux";
 import store from "./redux/store";
 import GlobalStyles from "./component/globalStyles";
 import { Toaster } from "sonner";
+import { ThemeProvider } from "@material-tailwind/react";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
     // <React.StrictMode>
+    <ThemeProvider>
     <Provider store={store}>
         <GlobalStyles>
             <Router>
@@ -19,6 +21,7 @@ root.render(
             </Router>
         </GlobalStyles>
     </Provider>
+    </ThemeProvider>
 
     // {/* </React.StrictMode> */}
 );
