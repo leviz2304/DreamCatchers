@@ -10,13 +10,14 @@
 
 .sectionVideo {
     background-color: var(--White-97, #f7f7f8);
+    float: left;
 }
 
 .courseSectionsContainer {
     max-width: 1280px;
     height: 100%;
     position: fixed;
-    right: -4px;
+    right: 0px;
     height: 100vh;
     top: 60px;
     padding-left: 2px;
@@ -99,7 +100,7 @@
 }
 
 .videoContainer {
-    height: calc(100vh - 60px);
+    height: 600px;
     overflow-y: hidden;
     overflow-x: hidden;
     position: relative;
@@ -118,7 +119,7 @@
         //max-width: 1280px;
         position: relative;
         padding: 30px;
-    
+        float: left;
         .videoPlayer{
             width: 100%;
             height: 100%;

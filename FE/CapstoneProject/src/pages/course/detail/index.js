@@ -7,7 +7,11 @@ import logoPage from "../../../assets/images/logo.png";
 import { useSelector } from "react-redux";
 import Comment from "../../../component/comment/index.js";
 import { comma } from "postcss/lib/list";
-
+import Header from "../../../layout/header"
+import CourseInfo from "../../../component/LearningComponent/CourseInfo.js";
+import button from "../../../assets/images/Button.png"
+import folder from "../../../assets/images/FolderNotchOpen.svg"
+import lecture from "../../../assets/images/PlayCircle.svg"
 let timerId = null;
 const debounce = (func, delay = 1000) => {
     return () => {
@@ -33,7 +37,7 @@ const CourseHero = ({ video = "", thumbnail }) => {
                     controls
                     className={clsx(
                         styles.videoPlayer,
-                        "cursor-pointer h-full w-full object-contain bg-black outline-none "
+                        "cursor-pointer h-[500px] w-full object-contain bg-black outline-none "
                     )}
                 >
                     <source src={video} type="video/mp4" />
@@ -206,6 +210,8 @@ function DetailCourse() {
     const [lessonSelected, setLessonSelected] = useState({
         id: "",
     });
+    const [totalDuration, setTotalDuration] = useState(0);
+
     const [totalLesson, setTotalLesson] = useState(0);
     const [currentProgress, setCurrentProgress] = useState([]);
     const [progressObject, setProgressObject] = useState(initFormData);
@@ -222,13 +228,24 @@ function DetailCourse() {
 
     const handleVideoSelect = (lesson) => {
         if (lesson.video !== "" && lesson.linkVideo === "") {
-            setCurrentVideoUrl(lesson.video);
+          setCurrentVideoUrl(lesson.video);
         } else {
-            setCurrentVideoUrl(lesson.linkVideo);
+          setCurrentVideoUrl(lesson.linkVideo);
         }
         setLessonSelected(lesson);
-    };
-
+      };
+    const formatDuration = (totalMinutes) => {
+        const hours = Math.floor(totalMinutes / 60);
+        const minutes = totalMinutes % 60;
+        if (hours > 0 && minutes > 0) {
+          return `${hours}h ${minutes}m`;
+        } else if (hours > 0) {
+          return `${hours}h`;
+        } else {
+          return `${minutes}m`;
+        }
+      };
+      
     useEffect(() => {
         const fetchApi = async () => {
             try {
@@ -257,10 +274,31 @@ function DetailCourse() {
             setOpenModal(true);
         }
     }, [id, alias]);
-
+    
+    useEffect(() => {
+        const fetchApi = async () => {
+          try {
+            const data = await userApi.getProgress(alias, id);
+            let totalLessons = 0;
+            let totalTime = 0;
+            data.content.course.sections.forEach((section) => {
+              totalLessons += section.lessons.length;
+              section.lessons.forEach((lesson) => {
+                totalTime += lesson.duration || 0; // Assuming duration is in minutes
+              });
+            });
+            setTotalLesson(totalLessons);
+            setTotalDuration(totalTime);
+            setProgressObject(data.content);
+            // Rest of your code...
+          } catch (error) {}
+        };
+        fetchApi();
+      }, [id, alias]);
+      
     return (
         <div className={clsx(styles.wrapperPage)}>
-            <div
+            {/* <div
                 className={clsx(
                     styles.headerPage,
                     "flex items-center justify-between b-shadow"
@@ -275,9 +313,28 @@ function DetailCourse() {
                 <div className={clsx(styles.progress)}>
                     Progress: {currentProgress.length}/{totalLesson}
                 </div>
+            </div> */}
+            <Header/>
+            <div className="bg-gray-50 mt-14">
+        <div className="grid grid-cols-12 items-center h-[60px]">
+          <div className="col-span-1 flex justify-center">
+            <img src={button} className="h-14 w-14 cursor-pointer" />
+          </div>
+          <div className="col-span-11">
+            <h5 className="mb-0 text-start">
+                {progressObject.course.title}
+            </h5>
+            <div className="text-start text-sm text-gray-600 flex items-center mt-1">
+                <img src={folder} className="mr-2" />
+                {totalLesson} lectures • {formatDuration(totalDuration)}
+                </div>
+
             </div>
+
+        </div>
+      </div>
             <main className={clsx(styles.uiUxCourse)}>
-                <div className={clsx(styles.sectionVideo, "w-full")}>
+                <div className={clsx(styles.sectionVideo, "w-[90%] h-[600px]")}>
                     <div className={clsx("row", "mx-0")}>
                         <div
                             className={clsx(styles.videoContainer, "col-lg-9")}
@@ -286,15 +343,15 @@ function DetailCourse() {
                                 video={currentVideoUrl}
                                 thumbnail={progressObject.course.thumbnail}
                             />
-
+{/* 
                             <CourseHeader
                                 titleHeader={progressObject.course.title}
 
-                            />
+                            /> */}
                         
 
                             {/* //!------------ NOTE ----------------*/}
-                            <button
+                            {/* <button
                                 className={clsx(
                                     styles.sectionComment,
                                     "btnLGBT"
@@ -318,12 +375,12 @@ function DetailCourse() {
                                         />
                                     </svg>
                                 </div>
-                            </button>
+                            </button> */}
 
-                            <div
+                            {/* <div
                                 className={clsx(styles.sectionComment)}
                                 onClick={handleOpenComment}
-                            ></div>
+                            ></div> */}
                             {/* //!------------ NOTE ----------------*/}
                         </div>
                         <div
@@ -369,16 +426,30 @@ function DetailCourse() {
                         </div>
                     </div>
                 </div>
-                {openModal && (
+               
+                {/* {openModal && (
                     <Comment
                         courseId={id}
                         lessonId={lessonSelected.id}
                         openModal={openModal}
                         funcCloseModal={handleCloseComment}
                     ></Comment>
-                )}
+                )} */}
+                
             </main>
-        </div>
+            <div className="h-14 bg-white ml-28">
+        <h3 className="text-black">
+          {lessonSelected.title}
+        </h3>
+      </div>
+      <div className="w-[800px] ml-28">
+      <Comment
+                courseId={id}
+                lessonId={lessonSelected.id}
+              />
+      </div>
+ 
+    </div>
     );
 }
 
