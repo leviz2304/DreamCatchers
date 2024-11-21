@@ -10,10 +10,9 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
-        config.enableSimpleBroker("/comment", "/user");
+        config.enableSimpleBroker("/comment", "/user", "/topic", "/queue");
         config.setApplicationDestinationPrefixes("/app");
         config.setUserDestinationPrefix("/user");
-        config.enableSimpleBroker("/topic", "/queue"); // Broker for subscriptions
     }
 
     @Override

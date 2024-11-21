@@ -21,32 +21,58 @@ export const CourseCard = memo(({ course, textBtn = "Get It Now", courseId = -1 
     const user = useSelector((state) => state.login.user);
     const navigate = useNavigate();
 
-    const handleGoToCourse = () => {
-        if (user) {
-            const fetchApi = async () => {
-                try {
-                    const result = await userApi.getListCourse(user.email);
-                    let isEnroll = false;
-                    result.content.forEach((progress) => {
-                        if (progress.course.id === courseId) {
-                            isEnroll = true;
-                            navigate(`/course/detail/${courseId}`);
-                        }
-                    });
-                    if (!isEnroll) {
-                        navigate(`/course/${courseId}`);
-                    }
-                } catch (error) {
-                    console.log(error);
-                }
-            };
-            fetchApi();
-        } else {
-            toast.info("Please login to enroll this course");
+    const handleGoToCourse = async () => {
+        // Check if user is logged in
+        if (!user) {
+            toast.info("Please login to enroll in this course");
             sessionStorage.setItem("prevPath", window.location.pathname);
             navigate("/login");
+            return;
+        }
+    
+        // Function to fetch current user email from session storage
+        const fetchCurrentUserEmail = () => {
+            const userSession = sessionStorage.getItem("user");
+            if (userSession) {
+                const parsedUser = JSON.parse(userSession);
+                return parsedUser.email || ""; // Return email from session storage
+            }
+            return ""; // Return empty string if no user found
+        };
+    
+        try {
+            const email = fetchCurrentUserEmail(); // Retrieve email from session storage
+            if (!email) {
+                toast.error("Please login to access this course.");
+                sessionStorage.setItem("prevPath", window.location.pathname);
+                navigate("/login");
+                return;
+            }
+    
+            // Fetch the user ID based on email
+            const userIdResponse = await dataApi.getUserIdByEmail(email);
+            const userId = userIdResponse; // Ensure correct extraction of data
+            console.log("Fetched user ID:", userId);
+    
+            // Check enrollment status
+            const isEnrolledResponse = await dataApi.checkUserEnrollment(userId, courseId);
+            console.log(isEnrolledResponse)
+            const isEnrolled = isEnrolledResponse; // Ensure correct extraction of data
+            console.log("Enrollment status:", isEnrolled);
+    
+            // Navigate based on enrollment status
+            if (isEnrolled) {
+                toast.success("You are already enrolled in this course. Redirecting...");
+                navigate(`/course/detail/${courseId}`);
+            } else {
+                navigate(`/course/${courseId}`);
+            }
+        } catch (error) {
+            toast.error("Failed to check enrollment status. Please try again.");
+            console.error("Error checking enrollment:", error);
         }
     };
+    
 
     return (
         <div className="course-card w-full h-full  px-4 mb-8">

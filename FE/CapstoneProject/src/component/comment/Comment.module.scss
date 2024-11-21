@@ -158,6 +158,7 @@
   }
   
   .commentInputContainer {
+    position: relative;
     display: flex;
     margin-bottom: 20px;
   }
@@ -171,7 +172,7 @@
   
   .commentInputBox {
     flex: 1;
-    position: relative;
+    position: absolute;
   }
   .replyInputBox{
     width: 100%;

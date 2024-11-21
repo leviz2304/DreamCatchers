@@ -2,8 +2,11 @@ package com.example.demo.controller.PrivateController;
 
 import com.example.demo.dto.CourseDTO;
 import com.example.demo.dto.ResponseObject;
+import com.example.demo.exception.CourseNotFoundException;
+import com.example.demo.exception.UserNotFoundException;
 import com.example.demo.service.CourseService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -36,14 +39,30 @@ public class CourseController {
     }
     @PostMapping("/{courseId}/enroll")
     public ResponseEntity<String> enrollCourse(@PathVariable int courseId, @RequestParam int userId) {
-        boolean isEnrolled = courseService.enrollUser(courseId, userId);
-
-        if (isEnrolled) {
-            return ResponseEntity.ok("User enrolled successfully in the course.");
-        } else {
-            return ResponseEntity.badRequest().body("User is already enrolled in this course.");
+        try {
+            boolean isEnrolled = courseService.enrollUser(courseId, userId);
+            if (isEnrolled) {
+                return ResponseEntity.ok("User enrolled successfully in the course.");
+            } else {
+                return ResponseEntity.status(HttpStatus.CONFLICT).body("User is already enrolled in this course.");
+            }
+        } catch (CourseNotFoundException | UserNotFoundException ex) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+        } catch (Exception ex) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred during enrollment.");
         }
     }
+
+    @GetMapping("/{courseId}/is-enrolled")
+    public ResponseEntity<Boolean> checkEnrollment(
+            @PathVariable int courseId,
+            @RequestParam int userId) {
+
+        boolean isEnrolled = courseService.isUserEnrolled(courseId, userId);
+        return ResponseEntity.ok(isEnrolled);
+    }
+
+
     @PutMapping("/edit/{id}")
     @PreAuthorize("hasAnyRole('INSTRUCTOR', 'ADMIN')")
     public ResponseEntity<ResponseObject> updateCourse(@PathVariable int id

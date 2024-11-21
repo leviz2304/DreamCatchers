@@ -43,8 +43,11 @@ public interface CourseRepository extends JpaRepository<Course, Integer> {
     Page<Course> findByCategoryIdAndIsDeleted(int id, Pageable pageable);
 
     Page<Course> findByTitleContainingAndIsDeleted(String title, boolean isDeleted, Pageable pageable);
-
-
+    @Query("SELECT CASE WHEN COUNT(s) > 0 THEN true ELSE false END FROM Course c JOIN c.students s WHERE c.id = :courseId AND s.id = :studentId")
+    boolean existsByCourseIdAndStudentId(@Param("courseId") int courseId, @Param("studentId") int studentId);
+    @Query("SELECT CASE WHEN COUNT(s) > 0 THEN true ELSE false END " +
+            "FROM Course c JOIN c.students s WHERE c.id = :courseId AND s.id = :studentId")
+    boolean existsByIdAndStudentsId(@Param("courseId") int courseId, @Param("studentId") int studentId);
     Page<Course> findAll(Pageable pageable);
 
     @Query("SELECT COUNT(c) FROM Course c WHERE MONTH(c.date) = :month AND YEAR(c.date) = :year")

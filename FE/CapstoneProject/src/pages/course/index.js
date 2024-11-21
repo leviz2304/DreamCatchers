@@ -174,26 +174,29 @@ function Course() {
         }
         return ""; // Return an empty string if no user is found
     };
-    
     // Fetch user ID from the server
     useEffect(() => {
         const fetchUserId = async () => {
             try {
-                const email = fetchCurrentUserEmail(); // Get email from session storage
+                const email = fetchCurrentUserEmail();
                 if (!email) {
                     console.error("No email found in session storage.");
                     return;
                 }
     
-                 setCurrentUserId = await dataApi.getUserIdByEmail(email); // Make API call
-                console.log("Fetched user ID:", currentUser); // Log for debugging
+                const userId = await dataApi.getUserIdByEmail(email);
+                console.log("Returned user ID:", userId); 
+                setCurrentUserId(userId);
             } catch (error) {
                 console.error("Failed to fetch user ID", error);
+                toast.error("Failed to fetch user information. Please try again.");
             }
         };
     
-        fetchUserId(); // Call the function
-    }, []); // Run
+        fetchUserId();
+    }, []);
+    
+    
     // Fetch course details
     useEffect(() => {
         const fetchCourseDetails = async () => {
@@ -219,9 +222,14 @@ function Course() {
     
     // Handle enrollment
     const handleEnroll = async () => {
-        
+        if (!currentUser) {
+            toast.error("Please log in to enroll in the course.");
+            console.error("Current user ID is null.");
+            return;
+        }
 
         try {
+            console.log("Enrolling user:", currentUser, "in course:", id);
             await dataApi.enrollInCourse(currentUser, id);
             toast.success("Enrolled successfully!");
         } catch (error) {

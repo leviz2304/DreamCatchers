@@ -7,11 +7,9 @@ import com.example.demo.service.CommentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.handler.annotation.DestinationVariable;
-import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.handler.annotation.Payload;
-import org.springframework.messaging.handler.annotation.SendTo;
+import org.springframework.messaging.handler.annotation.*;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.messaging.simp.annotation.SendToUser;
 import org.springframework.stereotype.Controller;
 
 import java.util.Objects;
@@ -27,16 +25,26 @@ public class CommentController {
     @MessageMapping("/comment/lesson/{lessonId}")
     @SendTo("/comment/lesson/{lessonId}")
     public Comment handleComment(@Payload CommentDTO commentDTO, @DestinationVariable int lessonId) throws Exception {
+        System.out.println("Received CommentDTO: " + commentDTO);
+
         if (commentDTO == null) {
             throw new IllegalArgumentException("CommentDTO cannot be null");
         }
 
-        if(commentDTO.getReplyToUser() != null && !Objects.equals(commentDTO.getEmail(), commentDTO.getReplyToUser())) {
+        if (commentDTO.getReplyToUser() != null && !Objects.equals(commentDTO.getEmail(), commentDTO.getReplyToUser())) {
             Notification notification = commentService.saveNotification(commentDTO);
             var alias = notification.getUser().getEmail().split("@")[0];
-            simpMessagingTemplate.convertAndSendToUser(alias,"/notification", notification);
+            simpMessagingTemplate.convertAndSendToUser(alias, "/notification", notification);
         }
-        return commentService.saveComment(commentDTO);
+
+        Comment savedComment = commentService.saveComment(commentDTO);
+        System.out.println("Saved Comment: " + savedComment);
+        return savedComment;
+    }
+    @MessageExceptionHandler
+    @SendToUser("/queue/errors")
+    public String handleException(Throwable exception) {
+        return exception.getMessage();
     }
 
 }

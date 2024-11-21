@@ -95,7 +95,7 @@ export const getAllCourseDeleted = async (page, size) => {
 export const enrollInCourse = async (userId, courseId) => {
     try {
         const response = await privateInstance.post(`/course/${courseId}/enroll`, null, {
-            params: { userId }, // Pass `userId` as a query parameter
+            params: { userId },
         });
         return response.data;
     } catch (error) {
@@ -106,12 +106,22 @@ export const enrollInCourse = async (userId, courseId) => {
 export const getUserIdByEmail = async (email) => {
     try {
         const response = await privateInstance.get(`/user/findIdByEmail?email=${encodeURIComponent(email)}`);
-        return response.data; // Assuming response.data contains the user ID
+        console.log("api:+ "+response)
+        return response;
     } catch (error) {
         return Promise.reject(error);
     }
 };
 
+export const checkUserEnrollment = async (userId, courseId) => {
+    try {
+        const response = await privateInstance.get(`/course/${courseId}/is-enrolled?userId=${userId}`);
+        return response; // Trả về true/false từ API
+    } catch (error) {
+        console.error("Error checking user enrollment:", error);
+        return false; // Nếu lỗi, trả về false
+    }
+};
 
 export const getCourseById = async (id, isDeleted = "false") => {
     try {

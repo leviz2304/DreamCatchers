@@ -59,6 +59,16 @@ public class CourseService {
         var courses = courseRepository.findAllByIsDeleted(true, PageRequest.of(page, size));
         return ResponseObject.builder().status(HttpStatus.OK).mess("Get successfully").content(courses).build();
     }
+    public boolean isUserEnrolled(int courseId, int userId) {
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new RuntimeException("Course not found"));
+
+        return course.getStudents()
+                .stream()
+                .anyMatch(user -> user.getId() == userId);
+    }
+
+
 
     public ResponseObject updateCourse(int id, CourseDTO courseDTO) {
         var course = courseRepository.findById(id).orElse(null);
@@ -169,20 +179,19 @@ public class CourseService {
         courseRepository.save(course);
         return ResponseObject.builder().content(courseRepository.findAllByIsDeleted(true, PageRequest.of(0, 5))).mess("Restore successfully").status(HttpStatus.OK).build();
     }
+
     @Transactional
     public boolean enrollUser(int courseId, int userId) {
-        // Tìm course theo ID
-        Course course = courseRepository.findById(courseId)
-                .orElseThrow(() -> new RuntimeException("Course not found"));
-
-        // Tìm user theo ID
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        // Kiểm tra nếu user đã được enroll trong course
-        if (course.getStudents().contains(user)) {
+        // Kiểm tra nếu user đã enroll trong course
+        if (courseRepository.existsByCourseIdAndStudentId(courseId, userId)) {
             return false; // User đã enroll
         }
+
+        // Tìm course và user (chỉ khi cần thêm)
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new RuntimeException("Course not found"));
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
         // Thêm user vào danh sách học viên của course
         course.getStudents().add(user);
@@ -192,6 +201,7 @@ public class CourseService {
 
         return true; // User đã được enroll thành công
     }
+
     public ResponseObject getAllByPageable(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         var courses = courseRepository.findAllByIsDeleted(false, pageable);

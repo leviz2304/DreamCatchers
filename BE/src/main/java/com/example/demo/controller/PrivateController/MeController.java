@@ -73,7 +73,10 @@ public class MeController {
 
     @GetMapping("/{alias}/progress/{courseId}")
     public ResponseEntity<ResponseObject> getProgress(@PathVariable String alias, @PathVariable int courseId) {
-        var result = authService.getProgressByCourseId(alias, courseId);
+        // Use the authService to check progress and enrollment status
+        ResponseObject result = authService.getProgressByCourseId(alias, courseId);
+
+        // Return the appropriate HTTP status and response body
         return ResponseEntity.status(result.getStatus()).body(result);
     }
 

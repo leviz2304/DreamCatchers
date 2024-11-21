@@ -12,7 +12,25 @@
     background-color: var(--White-97, #f7f7f8);
     float: left;
 }
-
+.wrapper {
+    @apply bg-gray-50 min-h-screen pt-20;
+  }
+  
+  .courseHeader {
+    @apply bg-gray-50 py-6;
+  }
+  
+  .courseTitle {
+    @apply text-2xl lg:text-3xl font-semibold;
+  }
+  
+  .courseInfo {
+    @apply text-sm text-gray-600 flex items-center mt-1;
+  }
+  
+  .icon {
+    @apply h-5 w-5 mr-2;
+  }
 .courseSectionsContainer {
     max-width: 1280px;
     height: 100%;

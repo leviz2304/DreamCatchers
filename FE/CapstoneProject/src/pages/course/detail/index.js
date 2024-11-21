@@ -210,6 +210,8 @@ function DetailCourse() {
     const [lessonSelected, setLessonSelected] = useState({
         id: "",
     });
+    const [lessonId, setLessonId] = useState(null);
+
     const [totalDuration, setTotalDuration] = useState(0);
 
     const [totalLesson, setTotalLesson] = useState(0);
@@ -252,6 +254,7 @@ function DetailCourse() {
                 const data = await userApi.getProgress(alias, id);
                 let total = 0;
                 const lessonFirst = data.content.course.sections[0].lessons[0];
+                console.log(lessonFirst)
                 const video = lessonFirst.video;
                 const linkVideo = lessonFirst.linkVideo;
 
@@ -264,8 +267,12 @@ function DetailCourse() {
 
                 setLessonSelected(lessonFirst);
                 setCurrentVideoUrl(video ? video : linkVideo);
+                setLessonId(lessonFirst.id); // Set lessonId directly
+
                 setProgressObject(data.content);
                 setTotalLesson(total);
+                console.log('LessonSelected:', lessonSelected);
+                console.log('LessonSelected.id:', lessonSelected.id);
             } catch (error) {}
         };
 
@@ -274,7 +281,12 @@ function DetailCourse() {
             setOpenModal(true);
         }
     }, [id, alias]);
-    
+    useEffect(() => {
+        if (lessonSelected && lessonSelected.id) {
+            console.log('LessonSelected updated:', lessonSelected);
+            console.log('LessonSelected.id:', lessonSelected.id);
+        }
+    }, [lessonSelected]);
     useEffect(() => {
         const fetchApi = async () => {
           try {
@@ -315,22 +327,17 @@ function DetailCourse() {
                 </div>
             </div> */}
             <Header/>
-            <div className="bg-gray-50 mt-14">
-        <div className="grid grid-cols-12 items-center h-[60px]">
-          <div className="col-span-1 flex justify-center">
-            <img src={button} className="h-14 w-14 cursor-pointer" />
-          </div>
-          <div className="col-span-11">
-            <h5 className="mb-0 text-start">
-                {progressObject.course.title}
-            </h5>
-            <div className="text-start text-sm text-gray-600 flex items-center mt-1">
-                <img src={folder} className="mr-2" />
-                {totalLesson} lectures • {formatDuration(totalDuration)}
-                </div>
-
+              {/* Course Header */}
+      <div className="bg-gray-50 mt-20">
+        <div className="flex items-center h-16 px-8">
+          <img src={button} className="h-14 w-14 cursor-pointer" alt="Button Icon" />
+          <div className="ml-4">
+            <h4 className="text-4xl font-semibold">{progressObject?.course.title}</h4>
+            <div className="text-sm text-gray-600 flex items-center mt-1">
+              <img src={folder} className="mr-2" alt="Folder Icon" />
+              {totalLesson} lectures • {formatDuration(totalDuration)}
             </div>
-
+          </div>
         </div>
       </div>
             <main className={clsx(styles.uiUxCourse)}>
@@ -437,16 +444,18 @@ function DetailCourse() {
                 )} */}
                 
             </main>
-            <div className="h-14 bg-white ml-28">
+            <div className="h-14 mt-10 bg-white ml-28">
         <h3 className="text-black">
           {lessonSelected.title}
         </h3>
       </div>
       <div className="w-[800px] ml-28">
-      <Comment
-                courseId={id}
-                lessonId={lessonSelected.id}
-              />
+      {lessonId && (
+    <Comment
+        courseId={id}
+        lessonId={lessonId}
+    />
+)}
       </div>
  
     </div>
