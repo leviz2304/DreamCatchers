@@ -54,6 +54,9 @@ public class User implements UserDetails {
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     List<Progress> progresses = new ArrayList<>();
+    @OneToMany(mappedBy = "instructor", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Course> courses = new ArrayList<>();
+
 
     @OneToMany(cascade = CascadeType.ALL)
     List<Post> posts = new ArrayList<>();

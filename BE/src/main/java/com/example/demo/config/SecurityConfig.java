@@ -50,10 +50,12 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/api/v1/public/**", "/ws/**").permitAll()
                         .requestMatchers("/api/v1/user/**").hasAnyRole(Role.USER.name(), Role.ADMIN.name(), Role.MANAGER.name())
-                        .requestMatchers(HttpMethod.GET, "/api/v1/private/**").hasAnyAuthority(ADMIN_READ.name(), MANAGER_READ.name())
-                        .requestMatchers(HttpMethod.POST, "/api/v1/private/**").hasAnyAuthority(ADMIN_CREATE.name(), MANAGER_CREATE.name())
-                        .requestMatchers(HttpMethod.PUT, "/api/v1/private/**").hasAnyAuthority(ADMIN_UPDATE.name(), MANAGER_UPDATE.name())
-                        .requestMatchers(HttpMethod.DELETE, "/api/v1/private/**").hasAuthority(ADMIN_DELETE.name())
+
+                        .requestMatchers(HttpMethod.GET, "/api/v1/private/**").hasAnyRole(Role.ADMIN.name(),Role.INSTRUCTOR.name(),Role.USER.name())
+                        .requestMatchers(HttpMethod.POST, "/api/v1/private/**").hasAnyRole(Role.ADMIN.name(),Role.INSTRUCTOR.name(),Role.USER.name())
+                        .requestMatchers(HttpMethod.PUT, "/api/v1/private/**").hasAnyRole(Role.ADMIN.name(),Role.INSTRUCTOR.name(),Role.USER.name())
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/private/**").hasAnyRole(Role.ADMIN.name(),Role.INSTRUCTOR.name(),Role.USER.name())
+                        .requestMatchers("/api/v1/instructor/**").hasRole(Role.INSTRUCTOR.name())
                         .anyRequest()
                         .permitAll()
                 )

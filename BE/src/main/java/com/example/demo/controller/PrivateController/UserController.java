@@ -4,14 +4,20 @@ import com.example.demo.auth.*;
 import com.example.demo.dto.PasswordDTO;
 import com.example.demo.dto.PostDTO;
 import com.example.demo.dto.ResponseObject;
+import com.example.demo.entity.user.Role;
+import com.example.demo.entity.user.User;
 import com.example.demo.mail.MailRequest;
 import com.example.demo.mail.MailService;
+import com.example.demo.repository.UserRepository;
 import com.example.demo.service.UserService;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Optional;
 
 @RestController
 @RequiredArgsConstructor
@@ -20,7 +26,14 @@ public class UserController {
     private final AuthService authService;
     private final MailService mailService;
     private final UserService userService;
+    private final UserRepository userRepository; // Or your service layer if you prefer
 
+    @PostMapping("/assign-role")
+    public ResponseEntity<?> assignRole(@RequestParam String email, @RequestParam String role) {
+        Role newRole = Role.valueOf(role.toUpperCase());
+        User updatedUser = authService.assignRoleToUser(email, newRole);
+        return ResponseEntity.ok(updatedUser);
+    }
 
 
     @PutMapping("/resetPassword/{email}")
@@ -135,6 +148,13 @@ public class UserController {
         return ResponseEntity.status(result.getStatus()).body(result);
     }
 
-
+    @GetMapping("/findIdByEmail")
+    public ResponseEntity<?> getUserIdByEmail(@RequestParam String email) {
+        Optional<User> userOptional = userRepository.findByEmail(email);
+        if (userOptional.isPresent()) {
+            return ResponseEntity.ok(userOptional.get().getId()); // Return just the user ID
+        }
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+    }
 }
 

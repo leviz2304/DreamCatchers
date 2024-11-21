@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from "react";
 import styles from "./userProfile.module.scss";
 import clsx from "clsx";
-import avatar from "../../../assets/images/avatar_25.jpg";
+// import avatar from "../../../assets/images/avatar_25.jpg";
 import ShowPassword from "../../../component/auth/ShowPassword";
 import * as userApi from "../../../api/apiService/authService";
 import { toast } from "sonner";
 import { useSelector } from "react-redux";
-
+import avatar from "../../../assets/images/Avatar.png"
+import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+import Messages from "../../../component/profileComponent/Messages";
+import Settings from "../../../component/profileComponent/Setting";
 function isValidEmail(email) {
     const emailRegex = /^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$/;
     return emailRegex.test(email);
@@ -19,9 +22,12 @@ function isPasswordStrong(password) {
 }
 
 function UserProfile({ adminOpen = false }) {
+
     const userInfo = useSelector((user) => user.login.user);
 
     const [user, setUser] = useState({ ...userInfo });
+    const [activeSection, setActiveSection] = useState("messages");
+
 
     const [activeForm, setActiveForm] = useState("details");
     const [errors, setErrors] = useState({});
@@ -177,8 +183,67 @@ function UserProfile({ adminOpen = false }) {
     }, [userInfo?.email]);
 
     return (
-        <div className={styles.container}>
-            <div className={clsx("container")}>
+        <div className="min-h-screen flex flex-col">
+        {/* Header */}
+        <header className="bg-white shadow-md">
+          <div className="p-6 flex items-center justify-between bg-gray-50">
+            <div className="flex items-center space-x-4">
+              <img
+                src="/profile-pic.jpg"
+                alt="Profile"
+                className="h-16 w-16 rounded-full border"
+              />
+              <div>
+                <h1 className="font-bold text-xl">Kevin Gilbert</h1>
+                <p className="text-sm text-gray-500">
+                  Web Designer & Best-Selling Instructor
+                </p>
+              </div>
+            </div>
+            <button className="bg-orange-500 text-white px-4 py-2 rounded-lg">
+              Become Instructor →
+            </button>
+          </div>
+  
+          {/* Navigation Tabs */}
+          <nav className="bg-white border-t border-b p-4">
+            <ul className="flex justify-center space-x-6 text-sm font-medium">
+              <li
+                onClick={() => setActiveSection("messages")}
+                className={clsx("cursor-pointer", {
+                  "text-orange-500 font-bold": activeSection === "messages",
+                  "hover:text-orange-500": activeSection !== "messages",
+                })}
+              >
+                Messages
+              </li>
+              <li
+                onClick={() => setActiveSection("settings")}
+                className={clsx("cursor-pointer", {
+                  "text-orange-500 font-bold": activeSection === "settings",
+                  "hover:text-orange-500": activeSection !== "settings",
+                })}
+              >
+                Settings
+              </li>
+            </ul>
+          </nav>
+        </header>
+  
+        {/* Main Content */}
+        <main className="flex-1 p-4">
+          {activeSection === "messages" && <Messages />}
+          {activeSection === "settings" && <Settings />}
+        </main>
+      </div>
+    
+      
+    
+      
+    
+    
+        // <div className={styles.container}>
+            /* <div className={clsx("container")}>
                 <div className={clsx("row justify-center gap-6")}>
                     <div className={clsx(styles.header, "col-lg-10")}>
                         <ul className={clsx("flex gap-10 mb-0")}>
@@ -623,8 +688,10 @@ function UserProfile({ adminOpen = false }) {
                         </>
                     )}
                 </div>
-            </div>
-        </div>
+            </div> */
+
+        // </div>
+        
     );
 }
 

@@ -11,12 +11,17 @@ import java.time.LocalDateTime;
 
 @Data
 @Entity
+
 @RequiredArgsConstructor
 public class Token {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
-    private final String token;
+
+    private  String token;
     private LocalDateTime createAt;
     private LocalDateTime inspirationAt;
+    public Token(String token) {
+        this.token = token;
+    }
 }

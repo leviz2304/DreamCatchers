@@ -77,7 +77,7 @@ function App() {
                                     {!route.path.includes("/course/detail") && (
                                         <Header />
                                     )}
-                                    <div className={clsx("pt-header")}>
+                                    <div className={clsx(styles.ptHeader,"pt-header")}>
                                         <route.component />
                                     </div>
                                 </>

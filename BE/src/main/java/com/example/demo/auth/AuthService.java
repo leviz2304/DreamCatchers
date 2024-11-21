@@ -9,6 +9,7 @@ import com.example.demo.entity.data.Notification;
 import com.example.demo.entity.data.Progress;
 import com.example.demo.entity.user.Role;
 import com.example.demo.entity.user.User;
+import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.jwt.JwtService;
 import com.example.demo.jwt.Token;
 import com.example.demo.mail.MailRequest;
@@ -61,6 +62,12 @@ public class AuthService {
     private  final CommentService commentService;
     @Autowired
     private PostService postService;
+    public User assignRoleToUser(String email, Role role) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
+        user.setRole(role);
+        return userRepository.save(user);
+    }
 
    public ResponseObject savePost(PostDTO postDTO) {
        var user = userRepository.findByEmail(postDTO.getEmail()).orElse(null);

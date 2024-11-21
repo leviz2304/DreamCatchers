@@ -16,14 +16,22 @@ import java.util.Optional;
 
 @Repository
 public interface CourseRepository extends JpaRepository<Course, Integer> {
-     Optional<Course> findByTitle(String title);
+    @Query("SELECT c FROM Course c JOIN c.students s WHERE s.email = :email")
+    List<Course> findCoursesByStudentEmail(@Param("email") String email);
+
+    @Query("SELECT c FROM Course c WHERE c.instructor.email = :email")
+    List<Course> findCoursesByInstructorEmail(@Param("email") String email);
+
+
+
+    Optional<Course> findByTitle(String title);
 
     @Query(value = "SELECT * FROM section s " +
             "left join course c on s.course_id = c.id " +
             "where s.is_deleted = :isDeleted and c.id = :id " , nativeQuery = true)
     Optional<List<Section>> findSectionsById(int id, boolean isDeleted);
 
-     Page<Course> findAllByIsDeleted(boolean isDeleted, Pageable pageable);
+    Page<Course> findAllByIsDeleted(boolean isDeleted, Pageable pageable);
 
     @Query(value = "select * from course left join course_category on course.id = course_category.course_id where category_id = :id and title like %:title%", nativeQuery = true)
     Optional<List<Course>> findByCategoryIdAndTitle(int id, String title);

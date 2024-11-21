@@ -6,6 +6,8 @@ import com.example.demo.dto.SectionDTO;
 import com.example.demo.entity.data.Course;
 import com.example.demo.entity.data.Lesson;
 import com.example.demo.entity.data.Section;
+import com.example.demo.entity.user.User;
+import com.example.demo.repository.UserRepository;
 import com.example.demo.repository.data.CourseRepository;
 import com.example.demo.dto.CourseDTO;
 import com.example.demo.repository.data.SectionRepository;
@@ -21,10 +23,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -34,11 +33,12 @@ import java.util.concurrent.atomic.AtomicReference;
 @Transactional
 public class CourseService {
     private final CourseRepository courseRepository;
+    private final UserRepository userRepository;
     private final CloudService cloudService;
     private final CategoryService categoryService;
     private final LessonService lessonService;
     private final SectionService sectionService;
-
+    private final UserService userService; // Fetch instructors and students
     public ResponseObject getCourseById(int id, boolean isDeleted) {
         Course course = courseRepository.findById(id).orElse(null);
         if (course == null) {
@@ -74,36 +74,43 @@ public class CourseService {
 
         sectionService.updateSections(courseDTO, course);
 
-        if (courseDTO.getIsEditedCategories() == 1)
+        if (courseDTO.isEditedCategories()) {
             categoryService.updateCategoriesForCourse(course, courseDTO.getCategories());
+        }
 
         courseRepository.save(course);
         return ResponseObject.builder().status(HttpStatus.OK).mess("Update successfully").build();
     }
 
     public ResponseObject addCourse(CourseDTO request) {
-        var course = courseRepository.findByTitle(request.getTitle()).orElse(null);
-        if (course != null) {
-            return ResponseObject.builder().mess("Course is already exist").status(HttpStatus.BAD_REQUEST).build();
+        if (courseRepository.findByTitle(request.getTitle()).isPresent()) {
+            return ResponseObject.builder().mess("Course already exists").status(HttpStatus.BAD_REQUEST).build();
+        }
+        System.out.println(request);
+        // Fetch instructor
+        var instructor = userService.findByEmail(request.getInstructor());
+        if (instructor == null) {
+            return ResponseObject.builder().mess("Instructor not found").status(HttpStatus.BAD_REQUEST).build();
         }
 
-        Course newCourse = Course.builder().price(request.getPrice())
+        Course course = Course.builder()
                 .title(request.getTitle())
-                .description(request.getDescription())
+                .price(request.getPrice())
                 .discount(request.getDiscount())
+                .description(request.getDescription())
                 .date(LocalDateTime.now())
                 .thumbnail(request.getThumbnail())
                 .video(request.getVideo())
+                .instructor(instructor)
+                .categories(categoryService.getCategoriesByIds(request.getCategories()))
+                .students(new HashSet<>()) // Initialize empty students
                 .build();
 
-        sectionService.addListSectionDtoToCourse(newCourse, request.getSections());
-        newCourse.setCategories(new ArrayList<>());
-        categoryService.addCategoriesForCourse(newCourse, request.getCategories());
+        sectionService.addListSectionDtoToCourse(course, request.getSections());
+        courseRepository.save(course);
 
-        courseRepository.save(newCourse);
-        return ResponseObject.builder().mess("Create success").status(HttpStatus.OK).build();
+        return ResponseObject.builder().mess("Course created successfully").status(HttpStatus.OK).build();
     }
-
     public ResponseObject softDelete(int id) {
         var course = courseRepository.findById(id).orElse(null);
         if (course == null) {
@@ -162,7 +169,29 @@ public class CourseService {
         courseRepository.save(course);
         return ResponseObject.builder().content(courseRepository.findAllByIsDeleted(true, PageRequest.of(0, 5))).mess("Restore successfully").status(HttpStatus.OK).build();
     }
+    @Transactional
+    public boolean enrollUser(int courseId, int userId) {
+        // Tìm course theo ID
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new RuntimeException("Course not found"));
 
+        // Tìm user theo ID
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Kiểm tra nếu user đã được enroll trong course
+        if (course.getStudents().contains(user)) {
+            return false; // User đã enroll
+        }
+
+        // Thêm user vào danh sách học viên của course
+        course.getStudents().add(user);
+
+        // Lưu course (JPA sẽ tự động lưu quan hệ ManyToMany)
+        courseRepository.save(course);
+
+        return true; // User đã được enroll thành công
+    }
     public ResponseObject getAllByPageable(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         var courses = courseRepository.findAllByIsDeleted(false, pageable);

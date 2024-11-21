@@ -25,7 +25,10 @@ public class CategoryService {
         var categories = categoryRepository.findAllByIsDeleted(false, PageRequest.of(page, size));
         return ResponseObject.builder().status(HttpStatus.OK).mess("Get successfully").content(categories).build();
     }
-
+    public List<Category> getCategoriesByIds(List<Integer> ids) {
+        // Validate and fetch categories
+        return categoryRepository.findAllById(ids);
+    }
     public ResponseObject getAllCategoryDeleted(int page, int size) {
         var categories = categoryRepository.findAllByIsDeleted(true, PageRequest.of(page, size));
         return ResponseObject.builder().status(HttpStatus.OK).mess("Get successfully").content(categories).build();
@@ -39,27 +42,13 @@ public class CategoryService {
         return cate;
     }
 
-    public void updateCategoriesForCourse(Course course, List<Integer> categories) {
-        List<Category> newCategories = new ArrayList<>();
-        for(var temp : categories) {
-            var cate = categoryRepository.findById(temp).orElse(null);
-            if(cate != null) {
-                newCategories.add(cate);
-                course.getCategories().add(cate);
-            }
-        }
-
-        course.getCategories().removeIf(old -> !newCategories.contains(old));
+    public void updateCategoriesForCourse(Course course, List<Integer> categoryIds) {
+        var categories = getCategoriesByIds(categoryIds);
+        course.setCategories(categories);
     }
-
-    public void addCategoriesForCourse(Course course, List<Integer> categories) {
-        if(categories == null) {
-            course.setCategories(null);
-            return;
-        }
-        for(var temp : categories) {
-            categoryRepository.findById(temp).ifPresent(cate -> course.getCategories().add(cate));
-        }
+    public void addCategoriesForCourse(Course course, List<Integer> categoryIds) {
+        var categories = getCategoriesByIds(categoryIds);
+        course.getCategories().addAll(categories);
     }
 
     public ResponseObject getByTitle(String title, int page, int size) {

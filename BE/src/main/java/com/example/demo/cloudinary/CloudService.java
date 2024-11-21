@@ -64,6 +64,7 @@ public class CloudService {
                                     new EagerTransformation().width(160).height(100).crop("crop").gravity("south").audioCodec("none")),
                             "eager_async", true));
 //                            "eager_notification_url", "https://mysite.example.com/notify_endpoint"));
+
         }
         catch (Exception e) {
             System.out.println("Cloud upload video: " + e.getMessage());

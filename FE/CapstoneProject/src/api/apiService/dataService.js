@@ -92,6 +92,26 @@ export const getAllCourseDeleted = async (page, size) => {
         return Promise.reject(error);
     }
 };
+export const enrollInCourse = async (userId, courseId) => {
+    try {
+        const response = await privateInstance.post(`/course/${courseId}/enroll`, null, {
+            params: { userId }, // Pass `userId` as a query parameter
+        });
+        return response.data;
+    } catch (error) {
+        return Promise.reject(error);
+    }
+};
+
+export const getUserIdByEmail = async (email) => {
+    try {
+        const response = await privateInstance.get(`/user/findIdByEmail?email=${encodeURIComponent(email)}`);
+        return response.data; // Assuming response.data contains the user ID
+    } catch (error) {
+        return Promise.reject(error);
+    }
+};
+
 
 export const getCourseById = async (id, isDeleted = "false") => {
     try {

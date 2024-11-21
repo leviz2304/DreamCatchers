@@ -3,6 +3,8 @@ package com.example.demo.service;
 import com.example.demo.dto.ResponseObject;
 import com.example.demo.dto.UsersAndRoles;
 import com.example.demo.entity.user.Role;
+import com.example.demo.entity.user.User;
+import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -38,7 +40,10 @@ public class UserService {
             return ResponseObject.builder().status(HttpStatus.OK).content(userRepository.findAll(PageRequest.of(page, size))).build();
         return ResponseObject.builder().status(HttpStatus.OK).content(userRepository.findByRole(role, PageRequest.of(page, size))).build();
     }
-
+    public User findByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
+    }
     public ResponseObject getUserByName(String name, boolean isDelete, int page, int size) {
         if (Objects.equals(name, ""))
             return ResponseObject.builder().status(HttpStatus.OK).content(userRepository.findAllByIsDeleted(isDelete, PageRequest.of(page, size))).build();

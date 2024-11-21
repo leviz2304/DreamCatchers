@@ -45,16 +45,16 @@ public class DemoApplication {
 //					.build();
 //			System.out.println(jwtService.generateToken(admin));
 //
-//			User manager = User.builder()
+//			User instructor = User.builder()
 //					.firstName("nguyen")
 //					.lastName("manager")
 //					.email("manager@gmail.com")
 //					.password(passwordEncoder.encode("1234Thanh@"))
-//					.role(Role.MANAGER)
+//					.role(Role.INSTRUCTOR)
 //					.build();
-//			System.out.println(jwtService.generateToken(manager));
+//			System.out.println(jwtService.generateToken(instructor));
 //
-//			userRepository.saveAll(List.of(user, admin, manager));
+//			userRepository.saveAll(List.of(user, admin, instructor));
 //		};
 //	}
 }

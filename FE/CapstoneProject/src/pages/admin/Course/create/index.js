@@ -9,13 +9,17 @@ import { toast } from "sonner";
 import btnClose from "../../../../assets/images/btnClose.svg";
 
 const initFormData = {
+    id: "",
     title: "",
     description: "",
     price: "",
+    discount: "",
     thumbnail: "",
-    date: "",
+    video: "",
     categories: [],
     sections: [],
+    date: "",
+    instructor: "", // Add this if BE requires it
 };
 
 function CreateCourse() {
@@ -23,6 +27,8 @@ function CreateCourse() {
     const [options, setOptions] = useState([]);
     const [errors, setErrors] = useState({});
     const [isUploading, setIsUploading] = useState(false);
+    const [currentUser, setCurrentUser] = useState(null); // Store current user info
+
     let timerId;
 
     const handleInputChange = (e) => {
@@ -34,6 +40,24 @@ function CreateCourse() {
             [name]: value,
         });
     };
+    const fetchInstructorEmail = () => {
+        const user = sessionStorage.getItem("user");
+        if (user) {
+            const parsedUser = JSON.parse(user);
+            return parsedUser.email || ""; // Default to an empty string if email is not found
+        }
+        return "";
+    };
+
+    useEffect(() => {
+        // Set instructor email on component mount
+        const instructorEmail = fetchInstructorEmail();
+        if (instructorEmail) {
+            setFormData((prev) => ({ ...prev, instructor: instructorEmail }));
+        } else {
+            toast.error("Failed to fetch instructor email from sessionStorage.");
+        }
+    }, []);
 
     const handleFileChange = (e, index, indexSection) => {
         const file = e.target.files[0];
@@ -78,7 +102,8 @@ function CreateCourse() {
     const handleSelectChange = (e) => {
         setFormData({
             ...formData,
-            categories: [...e],
+            categories: [...e], // Ensure it maps to BE-required format
+            isEditedCategories: true, // For BE validation
         });
     };
 
@@ -162,11 +187,15 @@ function CreateCourse() {
     };
 
     const handleInputSectionChange = (e, sectionIndex) => {
-        const updateSection = formData.sections[sectionIndex];
-        updateSection.title = e.target.value;
-        const updateSections = [...formData.sections];
-        updateSections[sectionIndex] = updateSection;
-        setFormData({ ...formData, sections: [...updateSections] });
+        const updatedSection = {
+            ...formData.sections[sectionIndex],
+            title: e.target.value,
+            isEdited: true, // Ensure BE knows this is updated
+        };
+        const updatedSections = [...formData.sections];
+        updatedSections[sectionIndex] = updatedSection;
+    
+        setFormData({ ...formData, sections: updatedSections });
     };
 
     const handleRemoveSection = (index) => {
@@ -236,42 +265,61 @@ function CreateCourse() {
         return errors;
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        if (isUploading)
-            return toast.error("Please wait for the file to finish uploading");
-        const validationErrors = validateForm(formData);
-        setErrors(validationErrors);
-
-        if (Object.keys(validationErrors).length > 0) {
-            toast.error("You need to fill in the empty field");
+    
+        if (isUploading) {
+            toast.error("Please wait for the file to finish uploading.");
             return;
         }
-
-        const featchApi = async () => {
-            let newCategories = [];
-            formData.categories.forEach((cate) => newCategories.push(cate.id));
-            const newCourse = {
-                ...formData,
-                categories: newCategories,
-            };
-            toast.promise(DataApi.createCourse(newCourse), {
-                loading: "Loading...",
-                success: () => {
-                    setFormData(initFormData);
-                    return "Create successfully";
-                },
-                error: (error) => {
-                    console.log(error);
-                    return error;
-                },
+    
+        const validationErrors = validateForm(formData);
+        setErrors(validationErrors);
+    
+        if (Object.keys(validationErrors).length > 0) {
+            toast.error("You need to fill in the empty fields.");
+            return;
+        }
+    
+        // Prepare and sanitize the payload
+        const preparePayload = () => ({
+            title: formData.title,
+            description: formData.description,
+            price: Number(formData.price) || 0, // Ensure price is a number
+            discount: Number(formData.discount) || 0, // Ensure discount is a number
+            thumbnail: formData.thumbnail,
+            video: formData.video,
+            categories: formData.categories.map((cate) => Number(cate.id)), // Ensure categories are numeric IDs
+            instructor: formData.instructor, // Email of the instructor
+            sections: formData.sections.map((section) => ({
+                title: section.title,
+                lessons: section.lessons.map((lesson) => ({
+                    title: lesson.title,
+                    description: lesson.description,
+                    video: lesson.video || "", // Default to empty string
+                    linkVideo: lesson.linkVideo || "", // Default to empty string
+                })),
+            })),
+            date: formData.date || null, // Optional date field
+        });
+    
+        const payload = preparePayload();
+        console.log("Payload sent to API:", payload);
+    
+        try {
+            await toast.promise(DataApi.createCourse(payload), {
+                loading: "Creating course...",
+                success: "Course created successfully!",
+                error: "Failed to create course.",
             });
-        };
-
-        const debounceApi = debounce(featchApi);
-        debounceApi();
+            setFormData(initFormData); // Reset form on success
+        } catch (error) {
+            console.error("Error creating course:", error);
+            toast.error("Failed to create course. Please check your input.");
+        }
     };
-
+    
+    
     useEffect(() => {
         const fetchApi = async () => {
             try {

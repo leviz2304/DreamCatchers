@@ -5,6 +5,7 @@ import com.example.demo.dto.ResponseObject;
 import com.example.demo.service.CourseService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -16,6 +17,7 @@ public class CourseController {
     private final CourseService courseService;
 
     @GetMapping("")
+    @PreAuthorize("hasAnyRole('INSTRUCTOR', 'ADMIN')")
     public ResponseEntity<ResponseObject> getCourseByCourseTitle(@RequestParam("title") String title,
                                                                  @RequestParam(defaultValue = "0") int page,
                                                                  @RequestParam(defaultValue = "5") int size
@@ -25,13 +27,25 @@ public class CourseController {
     }
 
     @PostMapping("/create")
+    @PreAuthorize("hasAnyRole('INSTRUCTOR', 'ADMIN')")
     public ResponseEntity<ResponseObject> create(@RequestPart CourseDTO course
           ) {
+        System.out.println(course);
         var result = courseService.addCourse(course);
         return ResponseEntity.status(result.getStatus()).body(result);
     }
+    @PostMapping("/{courseId}/enroll")
+    public ResponseEntity<String> enrollCourse(@PathVariable int courseId, @RequestParam int userId) {
+        boolean isEnrolled = courseService.enrollUser(courseId, userId);
 
+        if (isEnrolled) {
+            return ResponseEntity.ok("User enrolled successfully in the course.");
+        } else {
+            return ResponseEntity.badRequest().body("User is already enrolled in this course.");
+        }
+    }
     @PutMapping("/edit/{id}")
+    @PreAuthorize("hasAnyRole('INSTRUCTOR', 'ADMIN')")
     public ResponseEntity<ResponseObject> updateCourse(@PathVariable int id
             , @RequestPart CourseDTO course
           )  {
@@ -41,28 +55,33 @@ public class CourseController {
     }
 
     @PutMapping("/restore/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ResponseObject> restoreCourse(@PathVariable int id) {
         var result = courseService.restoreCourseById(id);
         return ResponseEntity.status(result.getStatus()).body(result);
     }
     @PutMapping("/delete/soft/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ResponseObject> softDelete(@PathVariable int id) {
         var result = courseService.softDelete(id);
         return ResponseEntity.status(result.getStatus()).body(result);
     }
     @DeleteMapping("/delete/hard/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ResponseObject> hardDelete(@PathVariable int id) {
         var result = courseService.hardDelete(id);
         return ResponseEntity.status(result.getStatus()).body(result);
     }
 
     @GetMapping("/deleted/category")
+    @PreAuthorize("hasAnyRole('INSTRUCTOR', 'ADMIN')")
     public ResponseEntity<ResponseObject> getCourseDeletedByCategoryId(@RequestParam("id") int id, @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "5") int size) {
         var result = courseService.getAllCourseDeletedByCategoryId(id, page, size);
         return ResponseEntity.status(result.getStatus()).body(result);
     }
 
     @GetMapping("/getAllDeleted")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ResponseObject> getAllDeleted(@RequestParam(defaultValue = "0") int page,
                                                         @RequestParam(defaultValue = "5") int size) {
         var result = courseService.getAllCourseDeleted(page, size);
