@@ -1,8 +1,10 @@
-import React, { Fragment, useEffect, useState } from "react"; // This imports the useState hook
+import React, { Fragment, useEffect, useState,useRef } from "react"; // This imports the useState hook
 import styles from "./DetailCourse.module.scss";
 import { Link, useParams } from "react-router-dom";
 import clsx from "clsx";
 import * as userApi from "../../../api/apiService/authService.js";
+import * as dataApi from "../../../api/apiService/dataService";
+
 import logoPage from "../../../assets/images/logo.png";
 import { useSelector } from "react-redux";
 import Comment from "../../../component/comment/index.js";
@@ -21,42 +23,106 @@ const debounce = (func, delay = 1000) => {
         }, delay);
     };
 };
-
-const CourseHero = ({ video = "", thumbnail }) => {
-    if (!video.startsWith("https://res.cloudinary.com")) {
-        var parts = video.split("/");
-        var videoId = parts[parts.length - 1].split("?")[0];
-        videoId = `https://www.youtube.com/embed/${videoId}`;
+const CourseHero = ({ video, thumbnail, lessonId, onProgressUpdate }) => {
+    const videoRef = useRef();
+    const hasSentProgress = useRef(false);
+    const userInfo = useSelector((state) => state.login.user);
+    const userId = userInfo.id; // Assuming the user ID is stored here
+  console.log(userId)
+    useEffect(() => {
+      hasSentProgress.current = false; // Reset when video changes
+    }, [lessonId]);
+  
+    useEffect(() => {
+      const videoElement = videoRef.current;
+      // console.log(videoElement.currentTime)
+      if (!videoElement) return;
+      const fetchCurrentUserEmail = () => {
+        const user = sessionStorage.getItem("user");
+        if (user) {
+            const parsedUser = JSON.parse(user);
+            return parsedUser.email || ""; // Return email if available
+        }
+        return ""; // Return an empty string if no user is found
     }
+    
+      const handleLoadedMetadata = () => {
+        const handleTimeUpdate = async () => {
+          const email = fetchCurrentUserEmail();
+          if (!email) {
+              console.error("No email found in session storage.");
+              return;
+          }
 
+          const userId = await dataApi.getUserIdByEmail(email);
+          if (videoElement.duration) {
+            const progress = (videoElement.currentTime / videoElement.duration) * 100;
+    
+            if (progress >= 80 && !hasSentProgress.current) {
+              hasSentProgress.current = true;
+    
+              // Send progress to backend
+              userApi.updateLessonProgress(userId, lessonId, progress)
+                .then(() => {
+                  onProgressUpdate && onProgressUpdate();
+                })
+                .catch(error => {
+                  console.error('Error updating progress:', error);
+                });
+            }
+          }
+        };
+    
+        videoElement.addEventListener('timeupdate', handleTimeUpdate);
+    
+        // Cleanup
+        return () => {
+          videoElement.removeEventListener('timeupdate', handleTimeUpdate);
+        };
+      };
+    
+      videoElement.addEventListener('loadedmetadata', handleLoadedMetadata);
+    
+      // Cleanup
+      return () => {
+        videoElement.removeEventListener('loadedmetadata', handleLoadedMetadata);
+      };
+    }, [lessonId, userId, onProgressUpdate]);
+  
+    // Existing logic for video URL
+    let videoUrl = video;
+  
+    if (!video.startsWith("https://res.cloudinary.com")) {
+      var parts = video.split("/");
+      var videoId = parts[parts.length - 1].split("?")[0];
+      videoUrl = `https://www.youtube.com/embed/${videoId}`;
+    }
+  
     return (
-        <section className={clsx(styles.courseHero)}>
-            {video.startsWith("https://res.cloudinary.com") && video !== "" && (
-                <video
-                    key={video}
-                    controls
-                    className={clsx(
-                        styles.videoPlayer,
-                        "cursor-pointer h-[500px] w-full object-contain bg-black outline-none "
-                    )}
-                >
-                    <source src={video} type="video/mp4" />
-                </video>
-            )}
-            {!video.startsWith("https://res.cloudinary.com") &&
-                video !== "" && (
-                    <iframe
-                        title="Video"
-                        src={videoId}
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowFullScreen
-                        className={clsx(styles.videoPlayer)}
-                    ></iframe>
-                )}
-            {video === "" ? <img src={thumbnail} alt="Course thumbnail" /> : ""}
-        </section>
+      <section className={styles.courseHero}>
+        {video.startsWith("https://res.cloudinary.com") && video !== "" && (
+          <video
+            key={video}
+            controls
+            className="cursor-pointer h-[500px] w-full object-contain bg-black outline-none"
+            ref={videoRef}
+          >
+            <source src={video} type="video/mp4" />
+          </video>
+        )}
+        {!video.startsWith("https://res.cloudinary.com") && video !== "" && (
+          <iframe
+            title="Video"
+            src={videoUrl}
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+            className={styles.videoPlayer}
+          ></iframe>
+        )}
+        {video === "" && <img src={thumbnail} alt="Course thumbnail" />}
+      </section>
     );
-};
+  };
 
 const CourseHeader = ({titleHeader, lastUpdate, commentTotal, watchingCount }) => {
     return (
@@ -90,6 +156,8 @@ const CurriculumItem = ({
     currentProgress,
     handleVideoSelect,
     setCurrentProgress,
+    isLessonUnlocked, // New prop
+
 }) => {
     const handleOpenSubLesson = (e) => {
         const sub = document.getElementById(`section${sectionId}`);
@@ -160,47 +228,49 @@ const CurriculumItem = ({
             </div>
 
             <div
-                id={`section${sectionId}`}
-                className={clsx(styles.wrapLesson, "w-full ", {
-                    disabled: active !== 0,
-                })}
-            >
-                {section.lessons &&
-                    section.lessons.map((lesson, ind) => {
-                        return (
-                            <div
-                                key={ind}
-                                onClick={() => handleVideoSelect(lesson)}
-                                className={clsx(
-                                    styles.lessonItem,
+        id={`section${sectionId}`}
+        className={clsx(styles.wrapLesson, "w-full", {
+          disabled: active !== 0,
+        })}
+      >
+        {section.lessons &&
+          section.lessons.map((lesson, ind) => {
+            const unlocked = isLessonUnlocked(lesson.id);
+            return (
+              <div
+                key={ind}
+                onClick={() => unlocked && handleVideoSelect(lesson)}
+                className={clsx(
+                    styles.lessonItem,
+                    {
+                      [styles.highlighted]: lesson.id === isHighlighted,
+                      [styles.unlocked]: unlocked,
+                      [styles.locked]: !unlocked,
+                    }
+                  )}
+              >
+                <div className="checkbox-wrapper ml-3">
+                  <label>
+                    <input
+                      checked={currentProgress.includes(lesson.id)}
+                      id={lesson.id}
+                      type="checkbox"
+                      onChange={handleChecked}
+                      disabled={!unlocked}
+                    />
+                    <span className="checkbox"></span>
+                  </label>
+                </div>
 
-                                    "flex items-center ml-6 gap-3.5",
-                                    {
-                                        [styles.highlighted]:
-                                            lesson.id === isHighlighted,
-                                    }
-                                )}
-                            >
-                                <div className="checkbox-wrapper ml-3">
-                                    <label>
-                                        <input
-                                            checked={currentProgress.includes(
-                                                lesson.id
-                                            )}
-                                            id={lesson.id}
-                                            type="checkbox"
-                                            onChange={handleChecked}
-                                        />
-                                        <span className="checkbox"></span>
-                                    </label>
-                                </div>
-
-                                <span>{lesson.title}</span>
-                            </div>
-                        );
-                    })}
-            </div>
-        </div>
+                <span>{lesson.title}</span>
+                {!unlocked && (
+                  <span className="ml-auto text-sm text-red-500">Locked</span>
+                )}
+              </div>
+            );
+          })}
+      </div>
+    </div>
     );
 };
 function DetailCourse() {
@@ -218,12 +288,43 @@ function DetailCourse() {
     const [currentProgress, setCurrentProgress] = useState([]);
     const [progressObject, setProgressObject] = useState(initFormData);
     const [openModal, setOpenModal] = useState(false);
-    const { id } = useParams();
+    const [userProgress, setUserProgress] = useState([]);
+    const [currentUser, setCurrentUser] = useState(null);
 
+    const { id } = useParams();
     const handleCloseComment = () => {
         setOpenModal(false);
     };
-
+    const fetchCurrentUserEmail = () => {
+        const user = sessionStorage.getItem("user");
+        if (user) {
+            const parsedUser = JSON.parse(user);
+            return parsedUser.email || ""; // Return email if available
+        }
+        return ""; // Return an empty string if no user is found
+    };
+    // Fetch user ID from the server
+    useEffect(() => {
+        const fetchUserId = async () => {
+            try {
+                const email = fetchCurrentUserEmail();
+                if (!email) {
+                    console.error("No email found in session storage.");
+                    return;
+                }
+    
+                const userId = await dataApi.getUserIdByEmail(email);
+                console.log("Returned user ID:", userId); 
+                setCurrentUser(userId);
+                console.log("Trong"+currentUser)
+            } catch (error) {
+                console.error("Failed to fetch user ID", error);
+            }
+        };
+    
+        fetchUserId();
+    }, []);
+    
     const handleOpenComment = () => {
         setOpenModal(true);
     };
@@ -288,6 +389,66 @@ function DetailCourse() {
         }
     }, [lessonSelected]);
     useEffect(() => {
+        const fetchUserId = async () => {
+            try {
+                const email = fetchCurrentUserEmail();
+                if (!email) {
+                    console.error("No email found in session storage.");
+                    return;
+                }
+    
+                const userId = await dataApi.getUserIdByEmail(email);
+                console.log("Returned user ID:", userId); 
+                setCurrentUser(userId);
+                console.log("Trong"+currentUser)
+            } catch (error) {
+                console.error("Failed to fetch user ID", error);
+            }
+        };
+        const fetchUserProgress = async () => {
+          try {
+            const email = fetchCurrentUserEmail();
+                if (!email) {
+                    console.error("No email found in session storage.");
+                    return;
+                }
+    
+                const userId = await dataApi.getUserIdByEmail(email);
+                // console.log("Returned user ID:", userId); 
+                // setCurrentUser(userId);
+                // console.log("Trong"+currentUser)
+            // console.log("test"+currentUser)
+            const data = await userApi.getUserProgressForCourse(userId, id);
+            console.log(data)
+            setUserProgress(data);
+          } catch (error) {
+            console.error("Error fetching user progress:", error);
+          }
+        };
+        fetchUserId();
+        fetchUserProgress();
+      }, [currentUser, id]);
+      const isLessonUnlocked = (lessonId) => {
+        if (userProgress.length === 0) {
+          // Only the first lesson is unlocked by default
+          return lessonId === progressObject.course.sections[0].lessons[0].id;
+        }
+        const progress = userProgress.find((lp) => lp.lessonId === lessonId);
+        return progress ? progress.unlocked : false;
+      };
+    
+      // Update progress when video progress updates
+      const handleProgressUpdate = () => {
+        // Refresh user progress
+        userApi.getUserProgressForCourse(currentUser, id)
+          .then((data) => {
+            setUserProgress(data);
+          })
+          .catch((error) => {
+            console.error("Error refreshing user progress:", error);
+          });
+      };
+    useEffect(() => {
         const fetchApi = async () => {
           try {
             const data = await userApi.getProgress(alias, id);
@@ -349,6 +510,8 @@ function DetailCourse() {
                             <CourseHero
                                 video={currentVideoUrl}
                                 thumbnail={progressObject.course.thumbnail}
+                                lessonId={lessonSelected.id}
+                                onProgressUpdate={handleProgressUpdate}
                             />
 {/* 
                             <CourseHeader
@@ -425,6 +588,8 @@ function DetailCourse() {
                                                     sectionId={index}
                                                     key={index}
                                                     section={section}
+                                                    isLessonUnlocked={isLessonUnlocked}
+
                                                 />
                                             )
                                         )}

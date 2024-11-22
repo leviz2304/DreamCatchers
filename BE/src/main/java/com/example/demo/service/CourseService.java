@@ -3,13 +3,12 @@ package com.example.demo.service;
 import com.example.demo.cloudinary.CloudService;
 import com.example.demo.dto.ResponseObject;
 import com.example.demo.dto.SectionDTO;
-import com.example.demo.entity.data.Course;
-import com.example.demo.entity.data.Lesson;
-import com.example.demo.entity.data.Section;
+import com.example.demo.entity.data.*;
 import com.example.demo.entity.user.User;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.repository.data.CourseRepository;
 import com.example.demo.dto.CourseDTO;
+import com.example.demo.repository.data.LessonProgressRepository;
 import com.example.demo.repository.data.SectionRepository;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +33,7 @@ import java.util.concurrent.atomic.AtomicReference;
 public class CourseService {
     private final CourseRepository courseRepository;
     private final UserRepository userRepository;
+    private final LessonProgressRepository lessonProgressRepository;
     private final CloudService cloudService;
     private final CategoryService categoryService;
     private final LessonService lessonService;
@@ -68,7 +68,29 @@ public class CourseService {
                 .anyMatch(user -> user.getId() == userId);
     }
 
+    private void unlockFirstLessonForUser(int courseId, int userId) {
+        Course course = courseRepository.findById(courseId).orElseThrow();
+        User user = userRepository.findById(userId).orElseThrow();
 
+        List<Section> sections = course.getSections();
+        sections.sort(Comparator.comparingInt(Section::getId));
+        if (!sections.isEmpty()) {
+            Section firstSection = sections.get(0);
+            List<Lesson> lessons = firstSection.getLessons();
+            lessons.sort(Comparator.comparingInt(Lesson::getId));
+            if (!lessons.isEmpty()) {
+                Lesson firstLesson = lessons.get(0);
+                LessonProgressKey key = new LessonProgressKey(userId, firstLesson.getId());
+                LessonProgress lessonProgress = new LessonProgress();
+                lessonProgress.setId(key);
+                lessonProgress.setUser(user);
+                lessonProgress.setLesson(firstLesson);
+                lessonProgress.setUnlocked(true);
+                lessonProgressRepository.save(lessonProgress);
+            }
+
+        }
+    }
 
     public ResponseObject updateCourse(int id, CourseDTO courseDTO) {
         var course = courseRepository.findById(id).orElse(null);

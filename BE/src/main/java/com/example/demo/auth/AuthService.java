@@ -493,7 +493,6 @@ public class AuthService {
         if(user == null || course == null) {
             return ResponseObject.builder().status(HttpStatus.BAD_REQUEST).mess("User or Course not found").build();
         }
-        invoiceService.saveForUser(user, course, method);
         Progress progress = Progress.builder()
                 .user(user)
                 .course(course)

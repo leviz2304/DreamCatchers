@@ -37,49 +37,45 @@ public class LessonService {
     }
 
     public List<Lesson> updateLessonsOfSection(Section oldSection, SectionDTO newSection) {
-        if(newSection.getLessons().isEmpty()) {
-            oldSection.setLessons(oldSection.getLessons().stream().peek(lesson -> lesson.setDeleted(true)).collect(Collectors.toList()));
-            for (var oldLesson:
-                    oldSection.getLessons()) {
-                oldLesson.setDeleted(true);
-                lessonRepository.save(oldLesson);
-            }
+        if (newSection.getLessons().isEmpty()) {
+            // Handle deletion...
             return null;
         }
 
         var lessonsUpdate = new ArrayList<Lesson>();
 
-        for(var newLesson : newSection.getLessons()) {
+        for (var newLesson : newSection.getLessons()) {
             var currentLesson = oldSection.getLessons().stream()
                     .filter(l -> newLesson.getId() == l.getId())
                     .findFirst()
                     .orElse(null);
-            if(currentLesson != null) {
+
+            if (currentLesson != null) {
+                // Update existing lesson
                 currentLesson.setDescription(newLesson.getDescription());
                 currentLesson.setTitle(newLesson.getTitle());
                 currentLesson.setVideo(newLesson.getVideo());
                 currentLesson.setLinkVideo(newLesson.getLinkVideo());
+                // Ensure section is set
+                currentLesson.setSection(oldSection);
                 lessonsUpdate.add(currentLesson);
             } else {
+                // Create new lesson
                 currentLesson = Lesson.builder()
                         .description(newLesson.getDescription())
                         .video(newLesson.getVideo())
                         .title(newLesson.getTitle())
                         .linkVideo(newLesson.getLinkVideo())
+                        .section(oldSection) // Set the section
                         .build();
                 oldSection.getLessons().add(currentLesson);
                 lessonsUpdate.add(currentLesson);
             }
         }
-        oldSection.setLessons(oldSection.getLessons().stream().peek(lesson -> {
-            if(lessonsUpdate.stream().noneMatch(l -> l.getId() == lesson.getId())) {
-                lesson.setDeleted(true);
-            }
-        }).collect(Collectors.toList()));
 
-       return oldSection.getLessons();
+        // Handle deletion of removed lessons...
+        return oldSection.getLessons();
     }
-
     public int updateVideo(LessonDTO lessonDTO, Lesson lesson, List<String> videos, int index) {
         if(videos != null && videos.size() > index) {
             switch (lessonDTO.getActionVideo()) {

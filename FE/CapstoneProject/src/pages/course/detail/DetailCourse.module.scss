@@ -7,7 +7,29 @@
     justify-content: flex-end;
     overflow-x: hidden;
 }
-
+.lessonItem {
+    display: flex;
+    align-items: center;
+    margin-left: 1.5rem; // Equivalent to ml-6
+    gap: 0.875rem; // Equivalent to gap-3.5
+  
+    &.highlighted {
+      background-color: #ebf8ff; // Similar to Tailwind's bg-blue-50
+    }
+  
+    &.unlocked {
+      cursor: pointer;
+  
+      &:hover {
+        background-color: #f3f4f6; // Similar to Tailwind's hover:bg-gray-100
+      }
+    }
+  
+    &.locked {
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
+  }
 .sectionVideo {
     background-color: var(--White-97, #f7f7f8);
     float: left;
@@ -412,6 +434,7 @@
 .wrapLesson {
     background: white;
     border-top: 1px solid #ccc;
+    height: 30%;
 }
 
 .lessonItem {

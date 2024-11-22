@@ -29,8 +29,8 @@ public class Lesson {
     private int duration;
     private boolean isDeleted = false;
 
-//    @ManyToOne()
-//    @JsonIgnore
-//    private Section section;
-
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "section_id")
+    @JsonBackReference // Prevents infinite recursion during serialization
+    private Section section;
 }

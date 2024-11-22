@@ -1,4 +1,5 @@
 import publicInstance, { privateInstance } from "../instance";
+import { userInstance } from "../instance";
 
 export const getAllCategories = async (page = 0, size = 9999999) => {
     try {
@@ -112,16 +113,20 @@ export const getUserIdByEmail = async (email) => {
         return Promise.reject(error);
     }
 };
-
-export const checkUserEnrollment = async (userId, courseId) => {
+export const updateLessonProgress = async (userId, lessonId, progressPercentage) => {
     try {
-        const response = await privateInstance.get(`/course/${courseId}/is-enrolled?userId=${userId}`);
-        return response; // Trả về true/false từ API
+      return await userInstance.post(`/lesson/progress`, {
+        userId,
+        lessonId,
+        progressPercentage,
+      });
     } catch (error) {
-        console.error("Error checking user enrollment:", error);
-        return false; // Nếu lỗi, trả về false
+      return Promise.reject(error);
     }
-};
+  };
+  
+  // Get user progress for a course
+  
 
 export const getCourseById = async (id, isDeleted = "false") => {
     try {

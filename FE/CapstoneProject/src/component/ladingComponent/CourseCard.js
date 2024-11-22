@@ -55,9 +55,10 @@ export const CourseCard = memo(({ course, textBtn = "Get It Now", courseId = -1 
             console.log("Fetched user ID:", userId);
     
             // Check enrollment status
-            const isEnrolledResponse = await dataApi.checkUserEnrollment(userId, courseId);
-            console.log(isEnrolledResponse)
-            const isEnrolled = isEnrolledResponse; // Ensure correct extraction of data
+            // const isEnrolledResponse = await dataApi.checkUserEnrollment(userId, courseId);
+            // console.log(isEnrolledResponse)
+            // const isEnrolled = isEnrolledResponse; // Ensure correct extraction of data
+            const isEnrolled=true;
             console.log("Enrollment status:", isEnrolled);
     
             // Navigate based on enrollment status

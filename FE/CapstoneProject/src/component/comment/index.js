@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import clsx from "clsx";
 import styles from "./Comment.module.scss";
-import avatarPlaceholder from "../../assets/images/avatar_25.jpg";
+import avatarPlaceholder from "../../assets/images/Avatar.png";
 import { over } from "stompjs";
 import SockJS from "sockjs-client";
 import { useSelector } from "react-redux";

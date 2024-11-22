@@ -1,7 +1,6 @@
 import publicInstance, { userInstance } from "../instance";
 import axios from "axios";
 import instance, { privateInstance } from "../instance";
-
 export const enrollCourse = async (enrollDTO) => {
     try {
         return await userInstance.post("/enroll/course", enrollDTO);
@@ -51,6 +50,19 @@ export const login = async ({ email, password }) => {
         return Promise.reject(error);
     }
 };
+export const updateLessonProgress = async (userId, lessonId, progressPercentage) => {
+    try {
+      return await privateInstance.post(`/lesson/progress`, {
+        userId,
+        lessonId,
+        progressPercentage,
+      });
+    } catch (error) {
+      return Promise.reject(error);
+    }
+  };
+  
+  // Get user progress for a course
 
 export const sendMail = async (email) => {
     try {
@@ -321,7 +333,22 @@ export const getPaymentVNPAY = async ({ method, email, courseId }) => {
         return Promise.reject(error);
     }
 };
-
+export const getUserProgressForCourse = async (userId, courseId) => {
+    try {
+      return await privateInstance.get(`/lesson/course/${courseId}/progress/${userId}`);
+    } catch (error) {
+      return Promise.reject(error);
+    }
+  };
+export const checkUserEnrollment = async (userId, courseId) => {
+    try {
+        const response = await privateInstance.get(`/course/${courseId}/is-enrolled?userId=${userId}`);
+        return response; // Trả về true/false từ API
+    } catch (error) {
+        console.error("Error checking user enrollment:", error);
+        return false; // Nếu lỗi, trả về false
+    }
+};
 export const getListCourse = async (email) => {
     try {
         return await userInstance.get(`/course/getAll/${email}`);

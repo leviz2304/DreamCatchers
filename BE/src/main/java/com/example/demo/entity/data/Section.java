@@ -24,11 +24,12 @@ public class Section {
     private int id;
 
     private String title;
-
-    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private List<Lesson> lessons;
     private boolean isDeleted = false;
 
     @ManyToOne(fetch = FetchType.LAZY)
     private Course course;
+
+    @OneToMany(mappedBy = "section", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonManagedReference // Helps in JSON serialization
+    private List<Lesson> lessons;
 }
