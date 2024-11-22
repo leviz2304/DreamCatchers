@@ -190,35 +190,47 @@ public class AuthService {
 
     public ResponseObject authenticate(AuthenticationRequest auth) {
         try {
-            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(auth.getEmail(), auth.getPassword()));
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(auth.getEmail(), auth.getPassword())
+            );
             var user = userRepository.findByEmail(auth.getEmail()).orElse(null);
-            if(user == null) {
-                return ResponseObject.builder().status(HttpStatus.BAD_REQUEST).content("User is not exist.").build();
+            if (user == null) {
+                return ResponseObject.builder()
+                        .status(HttpStatus.BAD_REQUEST)
+                        .content("User does not exist.")
+                        .build();
             }
             Token token = new Token(jwtService.generateToken(user));
             user.setToken(token);
             var userDTO = getUserDTOFromUser(user);
             userDTO.setToken(token.getToken());
-            return ResponseObject.builder().status(HttpStatus.OK).content(userDTO).build();
-        }
-        catch (AuthenticationException ex) {
-            System.out.println(ex.getMessage() + "Xác thực người dùng thất bại!");
-            return ResponseObject.builder().status(HttpStatus.BAD_REQUEST).mess("error while authentication user with error " + ex.getMessage()).build();
-
+            return ResponseObject.builder()
+                    .status(HttpStatus.OK)
+                    .content(userDTO)
+                    .build();
+        } catch (AuthenticationException ex) {
+            System.out.println(ex.getMessage() + " Authentication failed!");
+            return ResponseObject.builder()
+                    .status(HttpStatus.BAD_REQUEST)
+                    .mess("Error while authenticating user: " + ex.getMessage())
+                    .build();
         }
     }
 
+
     public UserDTO getUserDTOFromUser(User user) {
         return UserDTO.builder()
+                .id(user.getId()) // Add this line
                 .avatar(user.getAvatar())
                 .firstName(user.getFirstName())
                 .lastName(user.getLastName())
                 .email(user.getEmail())
                 .phoneNumber(user.getPhoneNumber())
                 .role(user.getRole())
-//                .progresses(user.getProgresses())
+                // .progresses(user.getProgresses())
                 .build();
     }
+
 
     public ResponseObject getAllByPage(int page, int size) {
         var result = userRepository.findAll(PageRequest.of(page, size));

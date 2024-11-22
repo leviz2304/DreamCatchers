@@ -2,6 +2,7 @@ package com.example.demo.dto;
 
 import com.example.demo.entity.data.Progress;
 import com.example.demo.entity.user.Role;
+import com.example.demo.entity.user.User;
 import jakarta.persistence.Entity;
 import lombok.*;
 
@@ -11,7 +12,11 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 @NoArgsConstructor
+@Getter
+@Setter
 public class UserDTO {
+    private int id;
+
     private String email;
     private String password;
     private String firstName;
@@ -21,6 +26,16 @@ public class UserDTO {
     private String token;
     private List<Progress> progresses;
     private Role role;
+
+    public UserDTO(User user) {
+        this.id = user.getId();
+        this.email = user.getEmail();
+        this.firstName = user.getFirstName();
+        this.lastName = user.getLastName();
+        this.avatar = user.getAvatar();
+        this.phoneNumber = user.getPhoneNumber();
+        this.role = user.getRole();
+    }
 
     public void setAvatar(String avatar) {
     }

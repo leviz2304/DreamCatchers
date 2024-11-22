@@ -1,4 +1,5 @@
 package com.example.demo.controller.PublicController;
+
 import com.example.demo.dto.ChatMessageDTO;
 import com.example.demo.entity.data.Message;
 import com.example.demo.service.MessageService;
@@ -6,12 +7,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
-import org.springframework.messaging.handler.annotation.SendTo;
+// Remove unused imports
+// import org.springframework.messaging.handler.annotation.SendTo;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -20,22 +20,30 @@ import java.util.List;
 public class ChatController {
 
     private final MessageService messageService;
+    private final SimpMessagingTemplate messagingTemplate;
 
-    @MessageMapping("/chat") // Prefix "/app" is automatically added
-    @SendTo("/topic/messages") // Messages broadcasted to all subscribed users
-    public ChatMessageDTO sendMessage(@Payload ChatMessageDTO chatMessage) {
-        // Save the message to the database (if required)
-        messageService.sendMessage(chatMessage.getSender(), chatMessage.getReceiver(), chatMessage.getContent());
-        return chatMessage; // Broadcast the message
+    @MessageMapping("/chat")
+    public void sendMessage(@Payload ChatMessageDTO chatMessage) {
+        // Save the message to the database
+        messageService.sendMessage(chatMessage.getSenderId(), chatMessage.getReceiverId(), chatMessage.getContent());
+
+        // Send the message to the specific user
+        messagingTemplate.convertAndSendToUser(
+                chatMessage.getReceiverId().toString(), // Use receiver's unique identifier
+                "/queue/messages",
+                chatMessage
+        );
     }
+
     @GetMapping("/messages/{senderId}/{receiverId}")
     public ResponseEntity<List<Message>> getMessagesBetweenUsers(
             @PathVariable Integer senderId,
             @PathVariable Integer receiverId
     ) {
-        List<com.example.demo.entity.data.Message> messages = messageService.getMessagesBetweenUsers(senderId, receiverId);
+        List<Message> messages = messageService.getMessagesBetweenUsers(senderId, receiverId);
         return ResponseEntity.ok(messages);
     }
+
     @PutMapping("/messages/read")
     public ResponseEntity<Void> markMessagesAsRead(
             @RequestParam Integer receiverId,
@@ -44,6 +52,4 @@ public class ChatController {
         messageService.markMessagesAsRead(receiverId, senderId);
         return ResponseEntity.noContent().build();
     }
-
-
 }

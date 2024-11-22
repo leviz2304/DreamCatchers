@@ -1,17 +1,21 @@
 package com.example.demo.service;
 
+import com.example.demo.dto.UserDTO;
 import com.example.demo.entity.data.Message;
+import com.example.demo.entity.data.Progress;
 import com.example.demo.entity.user.User;
 import com.example.demo.entity.data.Course;
 import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.repository.data.CourseRepository;
 import com.example.demo.repository.data.MessageRepository;
+import com.example.demo.repository.data.ProgressRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -20,7 +24,7 @@ public class ChatService {
     private final MessageRepository messageRepository;
     private final CourseRepository courseRepository;
     private final UserRepository userRepository;
-
+    private final ProgressRepository progressRepository;
     /**
      * Retrieve a list of instructors for courses the user has joined.
      *
@@ -33,13 +37,43 @@ public class ChatService {
                 .distinct()
                 .toList();
     }
-    /**
-     * Create or retrieve a chat room between a user and an instructor.
-     *
-     * @param userEmail       the email of the user
-     * @param instructorEmail the email of the instructor
-     * @return the chat room ID
-     */
+
+    public List<UserDTO> getInstructorsForUserCourses(Integer userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        // Fetch all progress records for the user
+        List<Progress> progresses = progressRepository.findByUser(user);
+
+        // Extract courses from progress records
+        List<Course> courses = progresses.stream()
+                .map(Progress::getCourse)
+                .collect(Collectors.toList());
+
+        // Extract instructors from courses
+        List<User> instructors = courses.stream()
+                .map(Course::getInstructor)
+                .distinct()
+                .collect(Collectors.toList());
+
+        // Convert instructors to UserDTO
+        List<UserDTO> instructorDTOs = instructors.stream()
+                .map(this::getUserDTOFromUser)
+                .collect(Collectors.toList());
+
+        return instructorDTOs;
+    }
+    public UserDTO getUserDTOFromUser(User user) {
+        return UserDTO.builder()
+                .id(user.getId())
+                .avatar(user.getAvatar())
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
+                .email(user.getEmail())
+                .phoneNumber(user.getPhoneNumber())
+                .role(user.getRole())
+                .build();
+    }
     public String createOrGetChatRoom(String userEmail, String instructorEmail) {
         // Retrieve User entities based on email
         User sender = userRepository.findByEmail(userEmail)

@@ -61,7 +61,18 @@ export const updateLessonProgress = async (userId, lessonId, progressPercentage)
       return Promise.reject(error);
     }
   };
-  
+  export const fetchInstructors = async (userId) => {
+    try {
+        console.log("User ID passed to fetchInstructors:", userId);
+        const url = `/instructor/${userId}`;
+        console.log("API Call URL:", url);
+        const response = await privateInstance.get(url);
+        return response; 
+    } catch (error) {
+        return Promise.reject(error);
+    }
+};
+
   // Get user progress for a course
 
 export const sendMail = async (email) => {
