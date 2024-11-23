@@ -1,78 +1,111 @@
-// Messages.js
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { over } from "stompjs";
 import SockJS from "sockjs-client";
 import moment from "moment";
 import avatarPlaceholder from "../../assets/images/Avatar.png";
 import { useSelector } from "react-redux";
 import * as userApi from "../../api/apiService/authService";
+
 let stompClient = null;
 
 const Messages = () => {
   const currentUser = useSelector((state) => state.login.user);
-  console.log(currentUser)
-  const [instructors, setInstructors] = useState([]);
   const [receiver, setReceiver] = useState(null);
   const [messages, setMessages] = useState([]);
   const [message, setMessage] = useState("");
+  const [contacts, setContacts] = useState([]);
 
- 
+  const chatWindowRef = useRef(null);
 
   useEffect(() => {
-    if (receiver) {
-      connect();
-      fetchMessages(receiver.id);
-      return () => {
-        if (stompClient) {
-          stompClient.disconnect();
-          console.log("Disconnected from WebSocket.");
-        }
-      };
-    }
-  }, [receiver]);
+    connect();
+    return () => {
+      if (stompClient) {
+        stompClient.disconnect();
+        console.log("Disconnected from WebSocket.");
+      }
+    };
+  }, []); // Empty dependency array to run once on mount
+  
   useEffect(() => {
     if (currentUser && currentUser.id) {
-        const getInstructors = async () => {
-            try {
-                console.log("Current User ID:", currentUser.id);
-                const data = await userApi.fetchInstructors(currentUser.id);
-                console.log(data)
-                setInstructors(data);
-            } catch (error) {
-                console.error("Error fetching instructors:", error);
+      const getContacts = async () => {
+        try {
+          console.log("Current User ID:", currentUser.id);
+          let data;
+          if (currentUser.role === 'USER') {
+            data = await userApi.fetchInstructors(currentUser.id);
+          } else if (currentUser.role === 'INSTRUCTOR' || currentUser.role === 'ADMIN') {
+            const response = await fetch(
+              `http://localhost:8080/students/${currentUser.id}`,
+              {
+                headers: {
+                  'Authorization': `Bearer ${sessionStorage.getItem("token")}`,
+                  'Content-Type': 'application/json',
+                },
+              }
+            );
+            if (!response.ok) {
+              throw new Error(`HTTP error! Status: ${response.status}`);
             }
-        };
+            data = await response.json();
+            console.log("Test data:", data);
+          }
+          console.log(data);
+          setContacts(data);
+        } catch (error) {
+          console.error("Error fetching contacts:", error);
+        }
+      };
 
-        getInstructors();
+      getContacts();
     } else {
-        console.log("currentUser or currentUser.id is undefined");
+      console.log("currentUser or currentUser.id is undefined");
     }
-}, [currentUser]);
+  }, [currentUser]);
 
+  useEffect(() => {
+    if (chatWindowRef.current) {
+      chatWindowRef.current.scrollTop = chatWindowRef.current.scrollHeight;
+    }
+  }, [messages]);
 
-  
-
-  const fetchMessages = async (instructorId) => {
+  const fetchMessages = async (contactId) => {
     try {
       const response = await fetch(
-        `/messages/${currentUser.id}/${instructorId}`
+        `http://localhost:8080/messages/${currentUser.id}/${contactId}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${sessionStorage.getItem("token")}`,
+            'Content-Type': 'application/json',
+          },
+        }
       );
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`HTTP error! Status: ${response.status}\n${errorText}`);
+      }
       const data = await response.json();
       setMessages(data);
     } catch (error) {
       console.error("Error fetching messages:", error);
     }
   };
+  
 
   const connect = () => {
     const Sock = new SockJS("http://localhost:8080/ws");
     stompClient = over(Sock);
     stompClient.connect(
-      { userId: currentUser.id.toString() },
+      {
+        userId: currentUser.id.toString(),
+        'Authorization': `Bearer ${sessionStorage.getItem("token")}`, // If you need to pass authentication
+      },
       onConnected,
       onError
     );
   };
+  
 
   const onConnected = () => {
     console.log("Connected to WebSocket");
@@ -92,17 +125,16 @@ const Messages = () => {
   const onMessageReceived = (payload) => {
     const payloadData = JSON.parse(payload.body);
     console.log("WebSocket message received:", payloadData);
-
-    // Check if the message is from or to the selected instructor
-    if (
-      (payloadData.senderId === receiver.id &&
-        payloadData.receiverId === currentUser.id) ||
-      (payloadData.senderId === currentUser.id &&
-        payloadData.receiverId === receiver.id)
-    ) {
+  
+    // Check if the message is related to the current conversation
+    if (receiver && (
+        (payloadData.senderId === receiver.id && payloadData.receiverId === currentUser.id) ||
+        (payloadData.senderId === currentUser.id && payloadData.receiverId === receiver.id)
+      )) {
       setMessages((prev) => [...prev, payloadData]);
     }
   };
+  
 
   const sendMessage = () => {
     if (stompClient && message.trim() !== "") {
@@ -112,35 +144,43 @@ const Messages = () => {
         content: message,
         timestamp: new Date(),
       };
-
+  
       stompClient.send("/app/chat", {}, JSON.stringify(chatMessage));
       setMessage("");
+  
+      setMessages((prev) => [...prev, chatMessage]);
     }
   };
-
+  
+  useEffect(() => {
+    if (receiver) {
+      fetchMessages(receiver.id);
+    }
+  }, [receiver]);
+  
   return (
     <div className="grid grid-cols-12 gap-4 h-full">
       {/* Sidebar */}
       <aside className="col-span-3 bg-gray-50 border rounded-lg p-4">
         <h2 className="font-bold text-lg mb-4">Messages</h2>
         <ul className="space-y-4">
-          {instructors.map((instructor) => (
+          {contacts.map((contact) => (
             <li
-              key={instructor.id}
+              key={contact.id}
               className="flex items-center space-x-3 p-2 hover:bg-gray-100 rounded-lg cursor-pointer"
               onClick={() => {
-                setReceiver(instructor);
-                fetchMessages(instructor.id);
+                setReceiver(contact);
+                fetchMessages(contact.id);
               }}
             >
               <img
-                src={instructor.avatar || avatarPlaceholder}
-                alt="Instructor Avatar"
+                src={contact.avatar || avatarPlaceholder}
+                alt="Contact Avatar"
                 className="h-10 w-10 rounded-full"
               />
               <div className="flex-1">
                 <h3 className="text-sm font-bold">
-                  {instructor.firstName} {instructor.lastName}
+                  {contact.firstName} {contact.lastName}
                 </h3>
                 <p className="text-xs text-gray-500">Tap to chat</p>
               </div>
@@ -154,11 +194,13 @@ const Messages = () => {
         // Chat Section
         <section className="col-span-9 bg-white border rounded-lg flex flex-col">
           {/* Messages Display */}
-          <div id="chatWindow" className="flex-1 p-4 overflow-y-auto">
+          <div
+            id="chatWindow"
+            ref={chatWindowRef}
+            className="p-4 overflow-y-auto h-96"
+          >
             {messages.map((msg, idx) => {
               const isCurrentUser = msg.senderId === currentUser.id;
-              const timeElapsed = moment(msg.timestamp).fromNow();
-
               return (
                 <div
                   key={idx}
@@ -218,9 +260,9 @@ const Messages = () => {
           </footer>
         </section>
       ) : (
-        // Placeholder when no instructor is selected
+        // Placeholder when no contact is selected
         <div className="col-span-9 flex items-center justify-center">
-          <p>Select an instructor to start chatting.</p>
+          <p>Select a contact to start chatting.</p>
         </div>
       )}
     </div>

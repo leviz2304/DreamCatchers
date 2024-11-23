@@ -34,7 +34,7 @@ public class LessonProgressService {
             lp.setId(key);
             lp.setUser(userRepository.findById(userId).orElseThrow());
             lp.setLesson(lessonRepository.findById(lessonId).orElseThrow());
-            lp.setUnlocked(true); // The lesson is unlocked since the user is watching it
+            lp.setUnlocked(true);
             return lp;
         });
 

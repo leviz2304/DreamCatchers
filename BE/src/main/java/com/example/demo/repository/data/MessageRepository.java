@@ -15,9 +15,11 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
 
     List<Message> findByReceiverAndIsReadFalseOrderByTimestampAsc(User receiver);
     List<Message> findByChatRoomId(String chatRoomId);
-
+    @Query("SELECT m FROM Message m WHERE (m.sender.id = :userId1 AND m.receiver.id = :userId2) OR (m.sender.id = :userId2 AND m.receiver.id = :userId1) ORDER BY m.timestamp ASC")
+    List<Message> findMessagesBetweenUsers(@Param("userId1") Integer userId1, @Param("userId2") Integer userId2);
     @Query("SELECT DISTINCT m.chatRoomId FROM Message m WHERE m.sender = :email OR m.receiver = :email")
     List<String> findChatRoomsByUser(@Param("email") String email);
     boolean existsByChatRoomId(String chatRoomId);
-
+    @Query("SELECT DISTINCT m.sender FROM Message m WHERE m.receiver.id = :instructorId")
+    List<User> findDistinctStudentsByInstructorId(@Param("instructorId") Integer instructorId);
 }
