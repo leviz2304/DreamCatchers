@@ -27,9 +27,12 @@ public class Progress {
     private List<Integer> lessonIds;
 
     @ManyToOne(cascade = CascadeType.PERSIST)
+    @JoinColumn(name = "course_id")
+
     private Course course;
 
-    @ManyToOne (cascade = CascadeType.PERSIST)
+    @ManyToOne(cascade = CascadeType.PERSIST)
+    @JoinColumn(name = "user_id")
     @JsonIgnore
     private User user;
 }

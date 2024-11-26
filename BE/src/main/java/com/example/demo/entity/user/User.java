@@ -55,6 +55,8 @@ public class User implements UserDetails {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     List<Progress> progresses = new ArrayList<>();
     @OneToMany(mappedBy = "instructor", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore // Bỏ qua courses khi serialize User
+
     private List<Course> courses = new ArrayList<>();
 
 

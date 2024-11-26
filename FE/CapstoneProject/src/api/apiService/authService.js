@@ -252,20 +252,18 @@ export const getUserByEmail = async (email) => {
     }
 };
 
-export const updateProfile = async (user, avatar) => {
-    const formData = new FormData();
-    const json = JSON.stringify(user);
-    const userBlob = new Blob([json], {
-        type: "application/json",
-    });
-    formData.append("user", userBlob);
-    formData.append("avatar", avatar);
+export const updateProfile = async (formData) => {
     try {
-        return await userInstance.putForm("/update", formData);
+        return await userInstance.put("/update", formData, {
+            headers: {
+                // No need to set Content-Type when using FormData; Axios sets it automatically
+            },
+        });
     } catch (error) {
         return Promise.reject(error);
     }
 };
+
 
 export const updatePassword = async (passwords) => {
     try {
@@ -351,15 +349,16 @@ export const getUserProgressForCourse = async (userId, courseId) => {
       return Promise.reject(error);
     }
   };
-export const checkUserEnrollment = async (userId, courseId) => {
+  export const checkUserEnrollment = async (courseId, email) => {
     try {
-        const response = await privateInstance.get(`/course/${courseId}/is-enrolled?userId=${userId}`);
-        return response; // Trả về true/false từ API
+      const response = await userInstance.get(`/course/${courseId}/is-enrolled`, {
+        params: { email },
+      });
+      return response.data;
     } catch (error) {
-        console.error("Error checking user enrollment:", error);
-        return false; // Nếu lỗi, trả về false
+      return Promise.reject(error.response ? error.response.data : error);
     }
-};
+  };
 export const getListCourse = async (email) => {
     try {
         return await userInstance.get(`/course/getAll/${email}`);

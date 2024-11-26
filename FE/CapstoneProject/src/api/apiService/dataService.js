@@ -61,12 +61,15 @@ export const updateCourse = async (id, course) => {
 };
 // coursvideo dang text
 
-export const getAllCourse = async (page = 0, size = 5) => {
+export const getAllCourse = async (page = 0, size = 99) => {
     try {
         const result = await publicInstance.get(
             `/course/getAll?page=${page}&size=${size}`
         );
+        console.log("Heasdsadllo:"+result);
+
         return result;
+
     } catch (error) {
         return Promise.reject(error);
     }
@@ -93,12 +96,10 @@ export const getAllCourseDeleted = async (page, size) => {
         return Promise.reject(error);
     }
 };
-export const enrollInCourse = async (userId, courseId) => {
+export const enrollInCourse = async (enrollData) => {
     try {
-        const response = await privateInstance.post(`/course/${courseId}/enroll`, null, {
-            params: { userId },
-        });
-        return response.data;
+        const response = await privateInstance.post(`/course/enroll`, enrollData);
+  return response.data; // Handle the response as needed
     } catch (error) {
         return Promise.reject(error);
     }

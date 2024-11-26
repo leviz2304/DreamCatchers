@@ -51,10 +51,9 @@ public class MessageService {
         User instructor = userRepository.findById(instructorId)
                 .orElseThrow(() -> new ResourceNotFoundException("Instructor not found"));
 
-        // Fetch students who have messaged the instructor
-        List<User> students = messageRepository.findDistinctStudentsByInstructorId(instructorId);
+        // Fetch students via Progress
+        List<User> students = messageRepository.findStudentsByInstructorId(instructorId);
 
-        // Convert to UserDTO
         return students.stream()
                 .map(this::convertToUserDTO)
                 .collect(Collectors.toList());

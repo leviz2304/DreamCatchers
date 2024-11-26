@@ -2,10 +2,11 @@ import * as React from "react";
 import styles from "./Course.module.scss";
 import clsx from "clsx";
 import { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
 
 import { toast } from "sonner";
 import * as dataApi from "../../api/apiService/dataService";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams,useNavigate  } from "react-router-dom";
 const CurriculumItem = ({ item, index, isHighlighted }) => {
     const handleOpenSubLesson = () => {
         const sub = document.getElementById(index);
@@ -106,66 +107,15 @@ const CourseDetails = ({ course, expanded }) => (
     </div>
 );
 
-const initCourse = {
-    title: "Web Design Fundamentals",
-    description:
-        "Learn the fundamentals of web design, including HTML, CSS, and responsive design principles. Develop the skills to create visually appealing and user-friendly websites.",
-    images: [
-        {
-            src: "https://picsum.photos/id/238/800",
-            alt: "Course Image 1",
-        },
-        {
-            src: "https://picsum.photos/id/239/800",
-            alt: "Course Image 2",
-        },
-        {
-            src: "https://picsum.photos/id/240/800",
-            alt: "Course Image 3",
-        },
-    ],
 
-    thumbnail: "",
-    duration: "4 Weeks",
-    level: "Beginner",
-    author: "John Smith",
-    price: "336.000",
-    lessons: [
-        {
-            id: "01",
-            title: "Introduction to HTML",
-        },
-        {
-            id: "02",
-            title: "Styling with CSS",
-        },
-        {
-            id: "03",
-            title: "Introduction to Responsive Design",
-        },
-        {
-            id: "04",
-            title: "Design Principles for Web",
-        },
-        {
-            id: "05",
-            title: "Building a Basic Website",
-        },
-        {
-            id: "06",
-            title: "Introduction to HTML",
-        },
-        {
-            number: "07",
-            title: "Introduction to HTML",
-        },
-    ],
-};
 function Course() {
+    const userInfo = useSelector((state) => state.login.user);
     const { id } = useParams(); // Course ID from the route
     const [course, setCourse] = useState(null);
     const [totalLessons, setTotalLessons] = useState(0);
     const [currentUser, setCurrentUserId] = useState(null);
+    const navigate = useNavigate();
+    console.log(userInfo)
     const fetchCurrentUserEmail = () => {
         const user = sessionStorage.getItem("user");
         if (user) {
@@ -222,20 +172,27 @@ function Course() {
     
     // Handle enrollment
     const handleEnroll = async () => {
-        if (!currentUser) {
+        if (!userInfo) {
             toast.error("Please log in to enroll in the course.");
-            console.error("Current user ID is null.");
+            console.error("Current user is null.");
             return;
-        }
-
-        try {
-            console.log("Enrolling user:", currentUser, "in course:", id);
-            await dataApi.enrollInCourse(currentUser, id);
+          }
+        
+          try {
+            console.log("Enrolling user:", userInfo.email, "in course:", id);
+            const enrollData = {
+              email: userInfo.email,
+              courseId: id,
+              lessonIds: [], // Start with an empty list or pass initial lesson IDs if any
+            };
+            const response = await dataApi.enrollInCourse(enrollData);
             toast.success("Enrolled successfully!");
-        } catch (error) {
+            // Optionally, navigate to the course detail page
+            navigate(`/course/detail/${id}`);
+          } catch (error) {
             toast.error("Failed to enroll in the course");
             console.error("Error during enrollment:", error);
-        }
+          }
     };
 
     if (!course) {

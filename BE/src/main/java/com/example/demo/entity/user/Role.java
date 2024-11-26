@@ -5,6 +5,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import java.util.*;
 import java.util.stream.Collectors;
+@Getter
 
 public enum Role {
 
@@ -45,6 +46,7 @@ public enum Role {
     Role(Set<Permission> permissions) {
         this.permissions = permissions;
     }
+
 
     public List<SimpleGrantedAuthority> getAuthorities() {
         List<SimpleGrantedAuthority> authorities = getPermissions()

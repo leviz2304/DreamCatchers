@@ -31,12 +31,7 @@ public class ChatService {
      * @param userEmail the email of the user
      * @return a list of distinct instructors
      */
-    public List<User> getInstructorsForUserCourses(String userEmail) {
-        return courseRepository.findCoursesByStudentEmail(userEmail).stream()
-                .map(Course::getInstructor)
-                .distinct()
-                .toList();
-    }
+
 
     public List<UserDTO> getInstructorsForUserCourses(Integer userId) {
         User user = userRepository.findById(userId)

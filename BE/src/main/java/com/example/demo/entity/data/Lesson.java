@@ -28,9 +28,10 @@ public class Lesson {
     private LocalDateTime date;
     private int duration;
     private boolean isDeleted = false;
-
+    private boolean isEdited = false;
+    private String actionVideo = "NONE";
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "section_id")
-    @JsonBackReference // Prevents infinite recursion during serialization
+    @JsonBackReference // Ngăn chặn vòng lặp khi serialize
     private Section section;
 }

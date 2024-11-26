@@ -16,7 +16,7 @@ const Messages = () => {
   const [contacts, setContacts] = useState([]);
 
   const chatWindowRef = useRef(null);
-
+  console.log(currentUser)
   useEffect(() => {
     connect();
     return () => {

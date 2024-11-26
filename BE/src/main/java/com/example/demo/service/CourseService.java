@@ -9,6 +9,7 @@ import com.example.demo.repository.UserRepository;
 import com.example.demo.repository.data.CourseRepository;
 import com.example.demo.dto.CourseDTO;
 import com.example.demo.repository.data.LessonProgressRepository;
+import com.example.demo.repository.data.ProgressRepository;
 import com.example.demo.repository.data.SectionRepository;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -38,6 +39,7 @@ public class CourseService {
     private final CategoryService categoryService;
     private final LessonService lessonService;
     private final SectionService sectionService;
+    private final ProgressRepository progressRepository;
     private final UserService userService; // Fetch instructors and students
     public ResponseObject getCourseById(int id, boolean isDeleted) {
         Course course = courseRepository.findById(id).orElse(null);
@@ -51,7 +53,7 @@ public class CourseService {
 
     public ResponseObject getAllCourse(int page, int size) {
         var courses = courseRepository.findAllByIsDeleted(false, PageRequest.of(page, size));
-
+        System.out.println("Gello"+courses);
         return ResponseObject.builder().status(HttpStatus.OK).mess("Get successfully").content(courses).build();
     }
 
@@ -60,14 +62,8 @@ public class CourseService {
         return ResponseObject.builder().status(HttpStatus.OK).mess("Get successfully").content(courses).build();
     }
     public boolean isUserEnrolled(int courseId, int userId) {
-        Course course = courseRepository.findById(courseId)
-                .orElseThrow(() -> new RuntimeException("Course not found"));
-
-        return course.getStudents()
-                .stream()
-                .anyMatch(user -> user.getId() == userId);
+        return progressRepository.existsByCourse_IdAndUser_Id(courseId, userId);
     }
-
     private void unlockFirstLessonForUser(int courseId, int userId) {
         Course course = courseRepository.findById(courseId).orElseThrow();
         User user = userRepository.findById(userId).orElseThrow();
@@ -118,13 +114,12 @@ public class CourseService {
         if (courseRepository.findByTitle(request.getTitle()).isPresent()) {
             return ResponseObject.builder().mess("Course already exists").status(HttpStatus.BAD_REQUEST).build();
         }
-        System.out.println(request);
+
         // Fetch instructor
         var instructor = userService.findByEmail(request.getInstructor());
         if (instructor == null) {
             return ResponseObject.builder().mess("Instructor not found").status(HttpStatus.BAD_REQUEST).build();
         }
-
         Course course = Course.builder()
                 .title(request.getTitle())
                 .price(request.getPrice())
@@ -135,14 +130,27 @@ public class CourseService {
                 .video(request.getVideo())
                 .instructor(instructor)
                 .categories(categoryService.getCategoriesByIds(request.getCategories()))
-                .students(new HashSet<>()) // Initialize empty students
                 .build();
 
-        sectionService.addListSectionDtoToCourse(course, request.getSections());
+        for (SectionDTO sectionDTO : request.getSections()) {
+            Section section = Section.builder()
+                    .title(sectionDTO.getTitle())
+                    .course(course)
+                    .build();
+
+            if (sectionDTO.getLessons() != null) {
+                lessonService.addLessonForSection(sectionDTO.getLessons(), section, null, 0);
+            }
+
+            course.getSections().add(section);
+        }
+
+        // Lưu Course
         courseRepository.save(course);
 
         return ResponseObject.builder().mess("Course created successfully").status(HttpStatus.OK).build();
     }
+
     public ResponseObject softDelete(int id) {
         var course = courseRepository.findById(id).orElse(null);
         if (course == null) {
@@ -204,29 +212,44 @@ public class CourseService {
 
     @Transactional
     public boolean enrollUser(int courseId, int userId) {
-        // Kiểm tra nếu user đã enroll trong course
-        if (courseRepository.existsByCourseIdAndStudentId(courseId, userId)) {
-            return false; // User đã enroll
+        // Check if the user is already enrolled in the course
+        if (progressRepository.existsByCourse_IdAndUser_Id(courseId, userId)) {
+            return false; // User is already enrolled
         }
 
-        // Tìm course và user (chỉ khi cần thêm)
+        // Find course and user
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new RuntimeException("Course not found"));
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // Thêm user vào danh sách học viên của course
-        course.getStudents().add(user);
+        // Create a new Progress entry to represent the enrollment
+        Progress progress = Progress.builder()
+                .course(course)
+                .user(user)
+                .lessonIds(new ArrayList<>()) // Initialize if needed
+                .build();
 
-        // Lưu course (JPA sẽ tự động lưu quan hệ ManyToMany)
-        courseRepository.save(course);
+        // Save the Progress entity
+        progressRepository.save(progress);
 
-        return true; // User đã được enroll thành công
+        return true; // User enrolled successfully
     }
+
+
+
 
     public ResponseObject getAllByPageable(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         var courses = courseRepository.findAllByIsDeleted(false, pageable);
+        System.out.println("Fetched Courses: " + courses.getContent());
         return ResponseObject.builder().status(HttpStatus.OK).content(courses).build();
     }
+    public ResponseObject getAllcoursesNotdeleted(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        var courses = courseRepository.findAllByIsDeleted(false, pageable);
+        System.out.println("Fetched Courses: " + courses.getContent());
+        return ResponseObject.builder().status(HttpStatus.OK).content(courses).build();
+    }
+
 }

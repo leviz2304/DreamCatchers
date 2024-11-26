@@ -1,6 +1,8 @@
 package com.example.demo.controller.PrivateController;
 
+import com.example.demo.auth.AuthService;
 import com.example.demo.dto.CourseDTO;
+import com.example.demo.dto.EnrollDTO;
 import com.example.demo.dto.ResponseObject;
 import com.example.demo.exception.CourseNotFoundException;
 import com.example.demo.exception.UserNotFoundException;
@@ -18,7 +20,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CourseController {
     private final CourseService courseService;
-
+    private final AuthService authService;
     @GetMapping("")
     @PreAuthorize("hasAnyRole('INSTRUCTOR', 'ADMIN')")
     public ResponseEntity<ResponseObject> getCourseByCourseTitle(@RequestParam("title") String title,
@@ -37,21 +39,12 @@ public class CourseController {
         var result = courseService.addCourse(course);
         return ResponseEntity.status(result.getStatus()).body(result);
     }
-    @PostMapping("/{courseId}/enroll")
-    public ResponseEntity<String> enrollCourse(@PathVariable int courseId, @RequestParam int userId) {
-        try {
-            boolean isEnrolled = courseService.enrollUser(courseId, userId);
-            if (isEnrolled) {
-                return ResponseEntity.ok("User enrolled successfully in the course.");
-            } else {
-                return ResponseEntity.status(HttpStatus.CONFLICT).body("User is already enrolled in this course.");
-            }
-        } catch (CourseNotFoundException | UserNotFoundException ex) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
-        } catch (Exception ex) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred during enrollment.");
-        }
+    @PostMapping("/enroll")
+    public ResponseEntity<ResponseObject> enrollCourse(@RequestBody EnrollDTO enrollDTO) {
+        ResponseObject response = authService.enrollCourse(enrollDTO);
+        return new ResponseEntity<>(response, response.getStatus());
     }
+
 
     @GetMapping("/{courseId}/is-enrolled")
     public ResponseEntity<Boolean> checkEnrollment(
@@ -111,6 +104,7 @@ public class CourseController {
     public ResponseEntity<ResponseObject> getAll(@RequestParam(defaultValue = "0") int page,
                                                         @RequestParam(defaultValue = "5") int size) {
         var result = courseService.getAllCourse(page, size);
+        System.out.println("Result"+result);
         return ResponseEntity.status(result.getStatus()).body(result);
     }
 

@@ -13,7 +13,8 @@ import java.util.Optional;
 public interface ProgressRepository extends JpaRepository<Progress, Integer> {
     Optional<Progress> findByCourseIdAndUser(int courseId, User user);
     List<Progress> findByUser(User user);
-
+    boolean existsByCourse_IdAndUser_Id(int courseId, int userId);
+    Optional<Progress> findByCourse_IdAndUser(int courseId, User user);
     List<ProgressDTO> findAllByUserEmail(String email);
     @Query("SELECT new com.example.demo.dto.ProgressDTO(p.course) FROM Progress p WHERE p.user.email = :email")
     List<ProgressDTO> findAllDTOByUserEmail(@Param("email") String email);

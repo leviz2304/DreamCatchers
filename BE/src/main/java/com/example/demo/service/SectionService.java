@@ -1,6 +1,7 @@
 package com.example.demo.service;
 
 import com.example.demo.dto.CourseDTO;
+import com.example.demo.dto.LessonDTO;
 import com.example.demo.entity.data.Course;
 import com.example.demo.entity.data.Lesson;
 import com.example.demo.entity.data.Section;
@@ -12,6 +13,7 @@ import org.springframework.boot.autoconfigure.AutoConfigureOrder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -61,21 +63,36 @@ public class SectionService {
     }
 
     public void addListSectionDtoToCourse(Course course, List<SectionDTO> sectionDTOs) {
-        if(course.getSections() == null) course.setSections(new ArrayList<>());
+        if (course.getSections() == null) course.setSections(new ArrayList<>());
         for (var sectionDTO : sectionDTOs) {
             var section = Section.builder()
                     .title(sectionDTO.getTitle())
-                    .lessons(sectionDTO.getLessons())
                     .course(course)
                     .build();
+
+            List<Lesson> lessons = new ArrayList<>();
+            for (LessonDTO lessonDTO : sectionDTO.getLessons()) {
+                Lesson lesson = Lesson.builder()
+                        .description(lessonDTO.getDescription())
+                        .linkVideo(lessonDTO.getLinkVideo())
+                        .title(lessonDTO.getTitle())
+                        .video(lessonDTO.getVideo())
+                        .date(LocalDateTime.now())
+                        .section(section)
+                        .build();
+                lessons.add(lesson);
+            }
+            section.setLessons(lessons);
             course.getSections().add(section);
             sectionRepository.save(section);
         }
     }
 
+
+
     public void updateSections(CourseDTO courseDTO, Course course) {
-        if(courseDTO.getSections().isEmpty()) {
-            if(course.getSections() == null || course.getSections().isEmpty()) return;
+        if (courseDTO.getSections().isEmpty()) {
+            if (course.getSections() == null || course.getSections().isEmpty()) return;
             else {
                 course.getSections().forEach(section -> {
                     section.setDeleted(true);
@@ -86,20 +103,32 @@ public class SectionService {
         }
 
         var updateSections = new ArrayList<Section>();
-        for(var sectionDTO : courseDTO.getSections()) {
+        for (var sectionDTO : courseDTO.getSections()) {
             Section section;
-            if(sectionDTO.getId() == 0) {
-                 section = Section.builder()
-                         .title(sectionDTO.getTitle())
-                         .lessons(sectionDTO.getLessons())
-                         .course(course)
-                         .build();
+            if (sectionDTO.getId() == 0) {
+                section = Section.builder()
+                        .title(sectionDTO.getTitle())
+                        .course(course)
+                        .build();
+
+                List<Lesson> lessons = new ArrayList<>();
+                for (LessonDTO lessonDTO : sectionDTO.getLessons()) {
+                    Lesson lesson = Lesson.builder()
+                            .description(lessonDTO.getDescription())
+                            .linkVideo(lessonDTO.getLinkVideo())
+                            .title(lessonDTO.getTitle())
+                            .video(lessonDTO.getVideo())
+                            .date(LocalDateTime.now())
+                            .section(section)
+                            .build();
+                    lessons.add(lesson);
+                }
+                section.setLessons(lessons);
                 course.getSections().add(section);
                 updateSections.add(section);
-            }
-            else {
-                 section = sectionRepository.findById(sectionDTO.getId()).orElse(null);
-                if(section != null) {
+            } else {
+                section = sectionRepository.findById(sectionDTO.getId()).orElse(null);
+                if (section != null) {
                     section.setTitle(sectionDTO.getTitle());
                     var lessons = lessonService.updateLessonsOfSection(section, sectionDTO);
                     section.setLessons(lessons);
@@ -109,15 +138,15 @@ public class SectionService {
 
             assert section != null;
             sectionRepository.save(section);
-
         }
 
         course.getSections().forEach(section -> {
-            if(!updateSections.contains(section)) {
+            if (!updateSections.contains(section)) {
                 section.setDeleted(true);
                 sectionRepository.save(section);
             }
         });
     }
+
 
 }

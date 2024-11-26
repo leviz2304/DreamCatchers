@@ -24,7 +24,7 @@ function isPasswordStrong(password) {
 function UserProfile({ adminOpen = false }) {
 
     const userInfo = useSelector((user) => user.login.user);
-
+    console.log(userInfo)
     const [user, setUser] = useState({ ...userInfo });
     const [activeSection, setActiveSection] = useState("messages");
 
@@ -189,12 +189,12 @@ function UserProfile({ adminOpen = false }) {
           <div className="p-6 flex items-center justify-between bg-gray-50">
             <div className="flex items-center space-x-4">
               <img
-                src="/profile-pic.jpg"
+                src={user.avatar}
                 alt="Profile"
                 className="h-16 w-16 rounded-full border"
               />
               <div>
-                <h1 className="font-bold text-xl">Kevin Gilbert</h1>
+                <h1 className="font-bold text-xl">{userInfo.firstName} {userInfo.lastName}</h1>
                 <p className="text-sm text-gray-500">
                   Web Designer & Best-Selling Instructor
                 </p>

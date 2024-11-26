@@ -53,11 +53,14 @@ public class MeController {
     }
 
     @PutMapping("/update")
-    public ResponseEntity<ResponseObject> updateProfile(@RequestPart(value = "user") UserDTO userDTO, @RequestParam(required = false) MultipartFile avatar) {
-        var result = authService.updateProfile(userDTO, avatar);
-        return ResponseEntity.status(result.getStatus()).body(result);
-
+    public ResponseEntity<ResponseObject> updateProfile(
+            @RequestPart("user") UserDTO userDTO,
+            @RequestPart(value = "avatar", required = false) MultipartFile avatar
+    ) {
+        ResponseObject response = authService.updateProfile(userDTO, avatar);
+        return new ResponseEntity<>(response, response.getStatus());
     }
+
 
     @PutMapping("/update/password")
     public ResponseEntity<ResponseObject> updatePassword(@RequestBody PasswordDTO passwordDTO) {

@@ -16,8 +16,9 @@ public class PCourseController {
 
     @GetMapping("/getAll")
     public ResponseEntity<ResponseObject> getAllByPageable(@RequestParam(defaultValue = "0") int page,
-                                                           @RequestParam(defaultValue = "5") int size) {
+                                                           @RequestParam(defaultValue = "99") int size) {
         var result = courseService.getAllByPageable(page, size);
+        System.out.println("result"+result.getContent());
         return ResponseEntity.status(result.getStatus()).body(result);
     }
 

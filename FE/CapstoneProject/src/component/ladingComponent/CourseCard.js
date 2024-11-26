@@ -10,7 +10,7 @@ function Badge({ keyData, children }) {
     return (
         <div
             key={keyData}
-            className="px-1 py-1 bg-orange-100 text-orange-700 rounded-md text-xs font-semibold uppercase w-10"
+            className="px-2 py-1 bg-orange-100 text-orange-700 rounded-md text-xs font-semibold uppercase inline-block"
         >
             {children}
         </div>
@@ -28,56 +28,41 @@ export const CourseCard = memo(({ course, textBtn = "Get It Now", courseId = -1 
             sessionStorage.setItem("prevPath", window.location.pathname);
             navigate("/login");
             return;
-        }
-    
-        // Function to fetch current user email from session storage
-        const fetchCurrentUserEmail = () => {
-            const userSession = sessionStorage.getItem("user");
-            if (userSession) {
-                const parsedUser = JSON.parse(userSession);
-                return parsedUser.email || ""; // Return email from session storage
-            }
-            return ""; // Return empty string if no user found
-        };
-    
-        try {
-            const email = fetchCurrentUserEmail(); // Retrieve email from session storage
+          }
+        
+          try {
+            const email = user.email;
             if (!email) {
-                toast.error("Please login to access this course.");
-                sessionStorage.setItem("prevPath", window.location.pathname);
-                navigate("/login");
-                return;
+              toast.error("Please login to access this course.");
+              sessionStorage.setItem("prevPath", window.location.pathname);
+              navigate("/login");
+              return;
             }
-    
-            // Fetch the user ID based on email
-            const userIdResponse = await dataApi.getUserIdByEmail(email);
-            const userId = userIdResponse; // Ensure correct extraction of data
-            console.log("Fetched user ID:", userId);
-    
+        
             // Check enrollment status
-            // const isEnrolledResponse = await dataApi.checkUserEnrollment(userId, courseId);
-            // console.log(isEnrolledResponse)
-            // const isEnrolled = isEnrolledResponse; // Ensure correct extraction of data
-            const isEnrolled=true;
+            const isEnrolledResponse = await userApi.checkUserEnrollment(courseId, email);
+            console.log(isEnrolledResponse)
+            const isEnrolled = isEnrolledResponse.data; // Assuming the backend returns a boolean
+        
             console.log("Enrollment status:", isEnrolled);
-    
+        
             // Navigate based on enrollment status
             if (isEnrolled) {
-                toast.success("You are already enrolled in this course. Redirecting...");
-                navigate(`/course/detail/${courseId}`);
+              toast.success("You are already enrolled in this course. Redirecting...");
+              navigate(`/course/detail/${courseId}`);
             } else {
-                navigate(`/course/${courseId}`);
+              navigate(`/course/${courseId}`);
             }
-        } catch (error) {
+          } catch (error) {
             toast.error("Failed to check enrollment status. Please try again.");
             console.error("Error checking enrollment:", error);
-        }
+          }
     };
     
 
     return (
         <div className="course-card w-full h-full  px-4 mb-8">
-        <div className="b-shadow bg-white rounded-lg border border-gray-100 overflow-hidden">
+        <div className="bg-white rounded-lg border border-gray-100 overflow-hidden shadow-md">
             {/* Phần chứa hình ảnh */}
             <div className="relative">
                 <img
@@ -125,7 +110,8 @@ const CoursesComponent = () => {
     useEffect(() => {
         const fetchApi = async () => {
             try {
-                const result = await dataApi.getAllCourse(0, 9999);
+                const result = await dataApi.getAllCourse(0, 100);
+                console.log(result.content.content)
                 setCourses(result.content.content);
             } catch (error) {
                 console.log("error: " + error);
@@ -135,7 +121,7 @@ const CoursesComponent = () => {
     }, []);
     return (
         <section className="p-4 sm:px-5 sm:py-10 mx-auto max-w-[1200px]">
-            <div className="flex flex-wrap justify-center">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 {courses &&
                     courses.map((course, index) => (
                         <CourseCard key={index} course={course} courseId={course.id} />

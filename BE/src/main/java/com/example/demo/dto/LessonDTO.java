@@ -1,12 +1,13 @@
 package com.example.demo.dto;
 
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
 // NONE, REMOVE, UPDATE, HAS
-
+@Getter
 @Data
 @NoArgsConstructor
 public class LessonDTO {

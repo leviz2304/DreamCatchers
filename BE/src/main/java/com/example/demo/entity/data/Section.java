@@ -10,6 +10,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Where;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -25,11 +26,13 @@ public class Section {
 
     private String title;
     private boolean isDeleted = false;
+    private boolean isEdited = false;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "course_id")
     private Course course;
 
-    @OneToMany(mappedBy = "section", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JsonManagedReference // Helps in JSON serialization
-    private List<Lesson> lessons;
+    @OneToMany(mappedBy = "section", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference // Serialize lessons theo chiều từ Section -> Lesson
+    private List<Lesson> lessons = new ArrayList<>();
 }

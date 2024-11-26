@@ -54,6 +54,7 @@ public class ChatController {
     @GetMapping("/students/{instructorId}")
     public ResponseEntity<List<UserDTO>> getStudentsForInstructor(@PathVariable Integer instructorId) {
         List<UserDTO> students = messageService.getStudentsForInstructor(instructorId);
+        System.out.println(students);
         return ResponseEntity.ok(students);
     }
     @GetMapping("/messages/{userId1}/{userId2}")

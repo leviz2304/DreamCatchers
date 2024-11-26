@@ -50,28 +50,29 @@ public class Course {
             joinColumns = @JoinColumn(name = "course_id", referencedColumnName = "id"),
             inverseJoinColumns = @JoinColumn(name = "category_id", referencedColumnName = "id")
     )
+    @Builder.Default
     private List<Category> categories = new ArrayList<>();
 
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
+    @Builder.Default
     private List<Section> sections = new ArrayList<>();
+
+
 
     // New mapping: reference to the instructor
     @ManyToOne
     @JoinColumn(name = "instructor_id", nullable = false)
+    @JsonIgnore // Bỏ qua instructor khi serialize Course
+
     private User instructor;
 
     // Additional utility methods if needed
     public void addCategory(Category category) {
         this.categories.add(category);
     }
-    @ManyToMany
-    @JoinTable(
-            name = "course_student",
-            joinColumns = @JoinColumn(name = "course_id"),
-            inverseJoinColumns = @JoinColumn(name = "user_id")
-    )
-    private Set<User> students = new HashSet<>();
+
     public void addSection(Section section) {
         this.sections.add(section);
     }
+
 }

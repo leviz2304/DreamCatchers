@@ -357,30 +357,48 @@ public class AuthService {
         return ResponseObject.builder().status(HttpStatus.OK).mess("Get user data successfully").build();
     }
 
-    public ResponseObject updateProfile(UserDTO userDTO, MultipartFile avatar)  {
+    public ResponseObject updateProfile(UserDTO userDTO, MultipartFile avatar) {
         var user = userRepository.findByEmail(userDTO.getEmail()).orElse(null);
-        if(user == null) {
-            return ResponseObject.builder().status(HttpStatus.BAD_REQUEST).mess("Username not found").build();
+        if (user == null) {
+            return ResponseObject.builder()
+                    .status(HttpStatus.BAD_REQUEST)
+                    .mess("User not found")
+                    .build();
         }
-        if(avatar != null) {
-            try {
-                user.setAvatar(cloudService.uploadImage(avatar.getBytes()));
-            }
-            catch (IOException ex) {
-                System.out.println("updateProfile:  " + ex.getMessage());
-                return ResponseObject.builder().status(HttpStatus.OK).mess("Error occurred when updating profile").content(userDTO).build();
-            }
-        }
-        userDTO.setAvatar(user.getAvatar());
-        if(!user.getEmail().contains("@") && userDTO.getEmail().contains("@")) {
-            user.setEmail(userDTO.getEmail());
-        }
+
+        // Update user fields
         user.setFirstName(userDTO.getFirstName());
         user.setLastName(userDTO.getLastName());
-        user.setPhoneNumber(userDTO.getPhoneNumber());
-        user = userRepository.save(user);
-        return ResponseObject.builder().status(HttpStatus.OK).mess("Update successfully").content(user).build();
+
+        if (avatar != null && !avatar.isEmpty()) {
+            try {
+                // Upload avatar to Cloudinary
+                String avatarUrl = cloudService.uploadImage(avatar.getBytes());
+                if (avatarUrl != null) {
+                    user.setAvatar(avatarUrl);
+                } else {
+                    return ResponseObject.builder()
+                            .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                            .mess("Failed to upload avatar")
+                            .build();
+                }
+            } catch (IOException e) {
+                System.out.println("Error uploading avatar: " + e.getMessage());
+                return ResponseObject.builder()
+                        .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .mess("Error occurred when updating profile")
+                        .build();
+            }
+        }
+
+        userRepository.save(user);
+        return ResponseObject.builder()
+                .status(HttpStatus.OK)
+                .mess("Update successfully")
+                .content(user)
+                .build();
     }
+
 
     public ResponseObject updatePassword(PasswordDTO passwordDTO) {
         var user = userRepository.findByEmail(passwordDTO.getEmail()).orElse(null);
@@ -402,21 +420,35 @@ public class AuthService {
             return ResponseObject.builder().status(HttpStatus.BAD_REQUEST).mess("User not found").build();
         }
 
-        var temp = progressRepository.findByCourseIdAndUser(enrollDTO.getCourseId(), user).orElse(null);
-        if(temp != null) {
-            return ResponseObject.builder().status(HttpStatus.OK).mess("Continue studying").content(temp).build();
+        Optional<Progress> existingProgress = progressRepository.findByCourse_IdAndUser(enrollDTO.getCourseId(), user);
+        if (existingProgress.isPresent()) {
+            return ResponseObject.builder()
+                    .status(HttpStatus.OK)
+                    .mess("Continue studying")
+                    .content(existingProgress.get())
+                    .build();
         }
+
 
         var course = courseRepository.findById(enrollDTO.getCourseId()).orElse(null);
         if (course == null) {
             return ResponseObject.builder().status(HttpStatus.BAD_REQUEST).mess("Course not found").build();
         }
 
-        Progress progress = Progress.builder().course(course).user(user).lessonIds(enrollDTO.getLessonIds()).build();
+        Progress progress = Progress.builder()
+                .course(course)
+                .user(user)
+                .lessonIds(enrollDTO.getLessonIds())
+                .build();
         progressRepository.save(progress);
-        return ResponseObject.builder().status(HttpStatus.OK).mess("Enroll course successfully").content(progress).build();
 
+        return ResponseObject.builder()
+                .status(HttpStatus.OK)
+                .mess("Enroll course successfully")
+                .content(progress)
+                .build();
     }
+
 
     public ResponseObject getPayment(String method, int courseId, String email) {
         var course = courseRepository.findById(courseId).orElse(null);
