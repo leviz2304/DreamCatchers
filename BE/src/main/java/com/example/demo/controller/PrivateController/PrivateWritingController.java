@@ -1,16 +1,27 @@
 package com.example.demo.controller.PrivateController;
 
+import com.example.demo.dto.EssayFeedback;
 import com.example.demo.dto.EssaySubmissionRequest;
 import com.example.demo.dto.ResponseObject;
 import com.example.demo.entity.data.UserEssay;
 import com.example.demo.entity.data.WritingTask;
+import com.example.demo.entity.user.User;
+import com.example.demo.exception.ResourceNotFoundException;
+import com.example.demo.repository.UserRepository;
 import com.example.demo.repository.data.UserEssayRepository;
+import com.example.demo.repository.data.WritingTaskRepository;
+import com.example.demo.service.ExternalEssayEvaluationService;
 import com.example.demo.service.WritingService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -20,15 +31,19 @@ public class PrivateWritingController {
 
     private final WritingService writingService;
     private final UserEssayRepository userEssayRepository;
+    private final UserRepository userRepository;
+    private final WritingTaskRepository writingTaskRepository;
+    private final ExternalEssayEvaluationService externalEssayEvaluationService;
     @PostMapping("/submit")
-    public ResponseEntity<ResponseObject> submitEssay(@RequestBody EssaySubmissionRequest request) {
-
+    public ResponseEntity<ResponseObject> submitEssay(@Validated @RequestBody EssaySubmissionRequest request) {
+        // Gọi service để xử lý việc gửi bài luận
         UserEssay userEssay = writingService.submitEssay(
                 request.getUserId(),
                 request.getWritingTaskId(),
                 request.getEssayContent()
         );
 
+        // Trả về phản hồi với thông tin bài luận đã được lưu
         return ResponseEntity.status(HttpStatus.CREATED).body(
                 ResponseObject.builder()
                         .status(HttpStatus.CREATED)
@@ -36,6 +51,15 @@ public class PrivateWritingController {
                         .content(userEssay)
                         .build()
         );
+
+    }
+    private String convertFeedbackToJson(EssayFeedback feedback) {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            return mapper.writeValueAsString(feedback);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Error converting feedback to JSON.");
+        }
     }
     @GetMapping("/essays/{userId}")
     public ResponseEntity<List<UserEssay>> getUserEssays(@PathVariable int userId) {

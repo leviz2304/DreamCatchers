@@ -6,6 +6,8 @@ import com.example.demo.repository.data.*;
 import com.example.demo.dto.*;
 import com.example.demo.entity.user.User;
 import com.example.demo.repository.UserRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,27 +32,36 @@ public class WritingService {
     }
 
 
+
     @Transactional
-    public UserEssay submitEssay(int userId, int writingTaskId, String essayContent) {
+    public UserEssay submitEssay(Integer userId, Integer writingTaskId, String essayContent) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
         WritingTask task = writingTaskRepository.findById(writingTaskId)
                 .orElseThrow(() -> new ResourceNotFoundException("Task not found"));
-        System.out.println(task.getPrompt());
-        // Evaluate the essay using GPT-3.5, passing the prompt
-        String feedback = externalEssayEvaluationService.evaluateEssay(task.getPrompt(), essayContent);
-        double score = externalEssayEvaluationService.calculateScore(feedback);
+
+        EssayFeedback feedback = externalEssayEvaluationService.evaluateEssay(task.getPrompt(), essayContent);
+        double overallScore = feedback.getOverallScore();
 
         UserEssay userEssay = UserEssay.builder()
                 .user(user)
                 .writingTask(task)
                 .content(essayContent)
                 .submissionTime(LocalDateTime.now())
-                .feedback(feedback)
-                .score(score)
+                .feedbackJson(convertFeedbackToJson(feedback)) // Lưu dưới dạng JSON
+                .score(overallScore)
                 .build();
 
         return userEssayRepository.save(userEssay);
+    }
+
+    private String convertFeedbackToJson(EssayFeedback feedback) {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            return mapper.writeValueAsString(feedback);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Error converting feedback to JSON.");
+        }
     }
     public WritingTask createWritingTask(WritingTask writingTask) {
         return writingTaskRepository.save(writingTask);

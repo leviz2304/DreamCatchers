@@ -42,13 +42,28 @@ export default function WritingSubmission() {
                 writingTaskId: selectedTaskId,
                 essayContent,
             });
-            setFeedback(response.content);
+            console.log("Submit Essay Response:", response); // Ghi log phản hồi từ backend
+            if (response && response.content && response.content.feedbackJson) {
+                const parsedFeedback = JSON.parse(response.content.feedbackJson);
+                console.log(parsedFeedback);
+                setFeedback(parsedFeedback);
+            } else {
+                throw new Error("Invalid response structure");
+            }
         } catch (error) {
             console.error("Submission failed:", error);
+            if (error && error.data && error.data.error && error.data.error.message) {
+                alert(`Submission failed: ${error.data.error.message}`);
+            } else if (error && error.message) {
+                alert(`Submission failed: ${error.message}`);
+            } else {
+                alert("Submission failed. Please try again.");
+            }
         } finally {
             setLoading(false);
         }
     };
+    
 
     return (
         <div className="max-w-4xl mx-auto p-6 bg-white shadow-md rounded-md mt-6">
@@ -112,10 +127,64 @@ export default function WritingSubmission() {
                 </button>
             </div>
             {feedback && (
-                <div className="mt-6 p-4 border border-gray-300 rounded-md bg-gray-50">
-                    <h2 className="text-lg font-semibold">AI Feedback</h2>
-                    <p className="text-gray-700 mt-2">{feedback.feedback}</p>
-                    <p className="text-gray-800 font-bold">Score: {feedback.score}</p>
+                <div className="mt-6 p-6 border border-gray-300 rounded-md bg-gray-50">
+                    <h2 className="text-2xl font-bold mb-4">AI Feedback</h2>
+
+                    {/* Grammar Errors */}
+                    {feedback.grammarErrors && feedback.grammarErrors.length > 0 && (
+                        <div className="mb-6">
+                            <h3 className="text-xl font-semibold mb-2">Grammatical Errors</h3>
+                            {feedback.grammarErrors.map((error, index) => (
+                                <div key={index} className="mb-4 pl-4 border-l-2 border-red-500">
+                                    <p className="text-md font-medium">
+                                        <span className="font-bold">Sentence:</span> {error.sentence}
+                                    </p>
+                                    <p className="text-sm">
+                                        <span className="font-semibold">Error:</span> {error.error}
+                                    </p>
+                                    <p className="text-sm">
+                                        <span className="font-semibold">Recommendation:</span> {error.recommendation}
+                                    </p>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
+                    {/* Vocabulary Errors */}
+                    {feedback.vocabularyErrors && feedback.vocabularyErrors.length > 0 && (
+                        <div className="mb-6">
+                            <h3 className="text-xl font-semibold mb-2">Vocabulary Errors</h3>
+                            {feedback.vocabularyErrors.map((error, index) => (
+                                <div key={index} className="mb-4 pl-4 border-l-2 border-yellow-500">
+                                    <p className="text-md font-medium">
+                                        <span className="font-bold">Word:</span> {error.word}
+                                    </p>
+                                    <p className="text-sm">
+                                        <span className="font-semibold">Error:</span> {error.error}
+                                    </p>
+                                    <p className="text-sm">
+                                        <span className="font-semibold">Recommendation:</span> {error.recommendation}
+                                    </p>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
+                    {/* Overall Feedback */}
+                    <div className="mb-6">
+                        <h3 className="text-xl font-semibold mb-2">Overall Feedback</h3>
+                        <p className="text-sm pl-4 border-l-2 border-blue-500">
+                            {feedback.overallFeedback}
+                        </p>
+                    </div>
+
+                    {/* Overall Score */}
+                    <div>
+                        <h3 className="text-xl font-semibold mb-2">Overall Score</h3>
+                        <p className="text-lg font-bold pl-4 border-l-2 border-green-500">
+                            {feedback.overallScore}
+                        </p>
+                    </div>
                 </div>
             )}
         </div>

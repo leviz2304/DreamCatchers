@@ -24,7 +24,7 @@ public class UserEssay {
     private LocalDateTime submissionTime;
 
     @Column(columnDefinition = "TEXT")
-    private String feedback; // Feedback from the ML model/API
+    private String feedbackJson; // JSON feedback from the AI
 
     private double score; // Optional score assigned
 

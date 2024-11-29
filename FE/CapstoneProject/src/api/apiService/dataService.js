@@ -13,7 +13,8 @@ export const getAllCategories = async (page = 0, size = 9999999) => {
 };
 export const getAllWritingTasks = async () => {
     try {
-        return await privateInstance.get(`/writing/tasks`);
+        const res= await privateInstance.get(`/writing/tasks`);
+        return res;
     } catch (error) {
         return Promise.reject(error);
     }
@@ -34,18 +35,20 @@ export const submitEssay = async ({ userId, writingTaskId, essayContent }) => {
             writingTaskId,
             essayContent,
         });
+        console.log("api"+response)
         return response;
     } catch (error) {
         console.error("Error submitting essay:", error);
         throw error;
     }
 };
-
-// Fetch submission history
 export const getSubmissionHistory = async (userId) => {
     try {
-        const response = await privateInstance.get(`/api/v1/private/writing/essays/${userId}`);
-        return response.data;
+        const response = await privateInstance.get(`/writing/essays/${userId}`);
+        return response.data.map(essay => ({
+            ...essay,
+            feedback: JSON.parse(essay.feedbackJson)
+        }));
     } catch (error) {
         console.error("Error fetching submission history:", error);
         throw error;
