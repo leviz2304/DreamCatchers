@@ -65,6 +65,15 @@ export default function SidebarWithBurgerMenu() {
           ],
         },
         {
+          label: "Test",
+          icon: icUser,
+          subItems: [
+            { label: "List", link: "/admin/test/list" },
+            { label: "Create", link: "/admin/test/create" },
+            // { label: "History Delete", link: "/admin/user/historyDelete" },
+          ],
+        },
+        {
           label: "Course",
           icon: icCourse,
           subItems: [
@@ -73,7 +82,15 @@ export default function SidebarWithBurgerMenu() {
             { label: "History Delete", link: "/admin/course/historyDelete" },
           ],
         },
-        // Add other items like Category, Invoice, etc.
+        {
+          label: "Writing Tasks",
+          icon: icCourse, // You can replace this with an appropriate icon
+          subItems: [
+            { label: "List", link: "/admin/writing-task/list" },
+            { label: "Create", link: "/admin/writing-task/create" },
+          ],
+        },
+        
       ],
     },
   ];

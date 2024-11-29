@@ -160,6 +160,7 @@ export default function Header() {
                         </div>
                         </Link>
                     </div>
+                    
                     <nav className="flex justify-start py-2">
                         <Link
                             className={`nav-header ${
@@ -168,6 +169,14 @@ export default function Header() {
                             to="/"
                         >
                             Home
+                        </Link>
+                        <Link
+                            className={`nav-header ${
+                                window.location.pathname === "/" ? "nav-header-active" : ""
+                            } px-4 py-2 text-black text-sm`}
+                            to="IELTS/Writing/Test"
+                        >
+                            Writing
                         </Link>
                         <Link
                             className={`nav-header ${

@@ -29,7 +29,10 @@ import AdminDetailCourse from "../pages/admin/Course/detail";
 import Post from "../pages/Post";
 import SubContent from "../pages/Post/create/subContent";
 import CreatePost from "../pages/Post/create";
-
+import WritingTaskList from "../pages/admin/Test/WritingTask/List";
+import WritingTaskCreate from "../pages/admin/Test/WritingTask/Create";
+import WritingTaskEdit from "../pages/admin/Test/WritingTask/Edit";
+import WritingSubmission from "../pages/IELTS/WritingSubmission"
 const publicRoutes = [
     { path: "/", component: LandingPage },
     { path: "/sign-up", component: SignUp },
@@ -53,6 +56,7 @@ const userRoutes = [
     { path: "me/profile/:email", component: userProfile },
     { path: "me/post/create", component: CreatePost },
     { path: "me/post/create/sub", component: SubContent },
+    { path: "IELTS/Writing/Test", component: WritingSubmission },
 ];
 
 const adminRoutes = [
@@ -72,7 +76,9 @@ const adminRoutes = [
         path: "/admin/category/historyDelete",
         component: HistoryDeletedCategory,
     },
-
+    { path: "/admin/writing-task/list", component: WritingTaskList  },
+    { path: "/admin/writing-task/create", component: WritingTaskCreate },
+    { path: "/admin/writing-task/edit/:id", component: WritingTaskEdit },
     { path: "/admin/user/list", component: ListUser },
     { path: "/admin/user/create", component: CreateUser },
     { path: "/admin/user/edit/:id", component: EditCourse },

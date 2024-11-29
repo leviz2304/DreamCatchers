@@ -11,6 +11,70 @@ export const getAllCategories = async (page = 0, size = 9999999) => {
         return Promise.reject(error);
     }
 };
+export const getAllWritingTasks = async () => {
+    try {
+        return await privateInstance.get(`/writing/tasks`);
+    } catch (error) {
+        return Promise.reject(error);
+    }
+};
+;
+
+export const getWritingTaskById = async (id) => {
+    try {
+        return await privateInstance.get(`/writing/${id}`);
+    } catch (error) {
+        return Promise.reject(error);
+    }
+};
+export const submitEssay = async ({ userId, writingTaskId, essayContent }) => {
+    try {
+        const response = await privateInstance.post("/writing/submit", {
+            userId,
+            writingTaskId,
+            essayContent,
+        });
+        return response;
+    } catch (error) {
+        console.error("Error submitting essay:", error);
+        throw error;
+    }
+};
+
+// Fetch submission history
+export const getSubmissionHistory = async (userId) => {
+    try {
+        const response = await privateInstance.get(`/api/v1/private/writing/essays/${userId}`);
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching submission history:", error);
+        throw error;
+    }
+};
+export const createWritingTask = async (task) => {
+    try {
+        return await privateInstance.post(`/writing/tasks`, task);
+    } catch (error) {
+        return Promise.reject(error);
+    }
+};
+
+export const updateWritingTask = async (id, task) => {
+    try {
+        return await privateInstance.put(`/writing/update/${id}`, task);
+    } catch (error) {
+        return Promise.reject(error);
+    }
+};
+
+export const deleteWritingTask = async (id) => {
+    try {
+        return await privateInstance.delete(`/writing/delete/${id}`);
+    } catch (error) {
+        return Promise.reject(error);
+    }
+};
+
 export const getAllCategoryDeleted = async (page, size) => {
     try {
         const res = await privateInstance.get(

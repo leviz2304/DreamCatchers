@@ -6,6 +6,7 @@ import Footer from "../../layout/footer/index.js";
 import loginSlice from "../../redux/reducers/loginSlice.js";
 import { useDispatch } from "react-redux";
 import banner from '../../assets/images/banner-img.png'
+import CategoryCard from "../../component/categories/CattegoryCard.js"
 function LandingPageComponent() {
     const dispatch = useDispatch();
     React.useEffect(() => {
@@ -50,7 +51,14 @@ function LandingPageComponent() {
                     </div>
                 </section>
                 </div>
-                <CourseSection />
+                {/* <CourseSection /> */}
+                <div className='flex flex-col gap-4 pt-16 items-center justify-center bg-zinc-100'>
+                        <h1 className='text-3xl font-medium'>Browse top category </h1>
+                        
+
+                        <CategoryCard/>
+                    
+                        </div>
                 <hr />
                 <div className="flex items-center justify-center">
                     <CourseCard />
