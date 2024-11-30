@@ -126,8 +126,23 @@ export const updateCourse = async (id, course) => {
         return Promise.reject(error);
     }
 };
-// coursvideo dang text
 
+export const getRecentComments = async (limit = 2) => {
+    const response = await privateInstance.get(`/dashboard/comments?limit=${limit}`);
+    return response;
+};
+export const getAdminStatistics = async () => {
+    return await privateInstance.get("/dashboard/stats"); // Gọi API từ backend
+};
+export const getAdminEssayStatistics = async () => {
+    const response = await privateInstance.get(`/dashboard/essays/statistics`);
+    return response;
+};
+
+export const getAllEssays = async () => {
+    const response = await privateInstance.get(`/dashboard/essays`);
+    return response;
+};
 export const getAllCourse = async (page = 0, size = 99) => {
     try {
         const result = await publicInstance.get(

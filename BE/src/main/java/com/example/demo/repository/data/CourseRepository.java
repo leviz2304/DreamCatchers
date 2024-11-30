@@ -16,10 +16,8 @@ import java.util.Optional;
 
 @Repository
 public interface CourseRepository extends JpaRepository<Course, Integer> {
-
-
-
-
+    @Query("SELECT COUNT(c) FROM Course c WHERE c.isDeleted = false")
+    int countActiveCourses(); // Trả về kiểu int
 
 
     Optional<Course> findByTitle(String title);

@@ -21,7 +21,6 @@ import {
 const selectes = [5, 10, 25];
 
 function ListUser() {
-    const [users, setUsers] = useState([]);
     const [options, setOptions] = useState([]);
     const [selected, setSelected] = useState(selectes[0]);
     const [page, setPage] = useState(0);
@@ -30,7 +29,11 @@ function ListUser() {
     const [deleteId, setDeleteId] = useState(null);
     const [update, setUpdate] = useState();
     const firstRender = useRef(true);
-
+    const [statistical, setStatistical] = useState({});
+    const [invoices, setInvoices] = useState([]);
+    const [courses, setCourses] = useState([]);
+    const [users, setUsers] = useState([]);
+    const [totalInvoice, setTotalInvoice] = useState(0);
     const handleRemoveUser = () => {
         const fetchApi = async () => {
             toast.promise(authApi.softDeleteUser(deleteId), {
@@ -110,7 +113,7 @@ function ListUser() {
         const fetchApi = async () => {
             try {
                 let array = [];
-                const result = await authApi.getAllUserAndRole();
+                const result = await authApi.getAllUser(0,99);
                 console.log(result.content);
                 result.content.roles.map((value, index) =>
                     array.push({ id: index, name: value })
@@ -118,14 +121,41 @@ function ListUser() {
                 array.push({ id: "-1", name: "All" });
                 setTotalData(result.content.users.totalElements);
                 setOptions(array);
-                setUsers(result.content.users.content);
+                setUsers(result.content);
+                console.log("Hello"+users)
             } catch (error) {
                 console.log(error);
             }
         };
         fetchApi();
     }, [update]);
+    useEffect(() => {
+        const fetchUsers = async () => {
+            try {
+                let array = [];
 
+                const result = await authApi.getAllUser(0, 99);
+                // result.content.map((role, index) =>
+                //     array.push({ id: index, name: role })
+                // );
+                array.push({ id: "-1", name: "All" });
+                array.push({ id: "1", name: "INSTRUCTOR" });
+                array.push({ id: "2", name: "ADMIN" });
+                array.push({ id: "3", name: "USER" });
+
+                setOptions(array);
+
+                setUsers(result.content); // `content` là danh sách người dùng
+                setTotalData(result.totalElements); // Tổng số user
+            } catch (error) {
+                console.error("Error fetching users:", error);
+                toast.error("Failed to fetch users!");
+            }
+        };
+        
+        fetchUsers();
+    });
+   
     useEffect(() => {
         if (firstRender.current) {
             firstRender.current = false;

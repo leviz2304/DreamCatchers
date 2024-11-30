@@ -12,11 +12,14 @@ import com.example.demo.repository.UserRepository;
 import com.example.demo.service.UserService;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -49,11 +52,16 @@ public class UserController {
     }
 
     @GetMapping("/getAll")
-    public ResponseEntity<ResponseObject> getAllUsersByPage(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "5") int size) {
-        var result = userService.getAllByPage(page, size);
-        return ResponseEntity.status(result.getStatus()).body(result);
+    public ResponseEntity<Page<User>> getAllActiveUsers(Pageable pageable) {
+        Page<User> activeUsers = userService.getAllActiveUsers(pageable);
+        return ResponseEntity.ok(activeUsers);
     }
 
+    //    @GetMapping("/active")
+//    public ResponseEntity<List<User>> getAllActiveUsers() {
+//        List<User> activeUsers = userService.getAllActiveUsers();
+//        return ResponseEntity.ok(activeUsers);
+//    }
     @GetMapping("/getAllDeleted")
     public ResponseEntity<ResponseObject> getAllDeleted(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "5") int size) {
         var result = userService.getAllDeletedByPage(page, size);

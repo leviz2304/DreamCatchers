@@ -7,10 +7,13 @@ import com.example.demo.entity.user.User;
 import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Objects;
 
 @Service
@@ -55,6 +58,9 @@ public class UserService {
     public ResponseObject getAllByPage(int page, int size) {
         var result = userRepository.findAllByIsDeleted(false, PageRequest.of(page, size));
         return ResponseObject.builder().status(HttpStatus.OK).content(result).build();
+    }
+    public Page<User> getAllActiveUsers(Pageable pageable) {
+        return userRepository.findByIsDeletedFalse(pageable);
     }
 
     public ResponseObject getAllDeletedByPage(int page, int size) {

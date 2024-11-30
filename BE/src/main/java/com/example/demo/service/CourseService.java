@@ -1,6 +1,7 @@
 package com.example.demo.service;
 
 import com.example.demo.cloudinary.CloudService;
+import com.example.demo.dto.CourseStatisticDTO;
 import com.example.demo.dto.ResponseObject;
 import com.example.demo.dto.SectionDTO;
 import com.example.demo.entity.data.*;
@@ -26,6 +27,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 @Data
 @RequiredArgsConstructor

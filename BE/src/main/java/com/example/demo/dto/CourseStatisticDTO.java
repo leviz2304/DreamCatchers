@@ -10,7 +10,9 @@ import lombok.Data;
 @Data
 public class CourseStatisticDTO {
     private int id;
-    private String title;
+//    private String title;
     private String thumbnail;
-    private int price;
+//    private int price;
+    private String courseTitle;
+    private int enrollments;
 }

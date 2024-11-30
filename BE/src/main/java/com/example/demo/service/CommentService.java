@@ -9,6 +9,7 @@ import com.example.demo.repository.data.CommentRepository;
 import com.example.demo.repository.data.LessonRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,7 +28,10 @@ public class CommentService {
     public Comment getById(int id) {
         return commentRepository.findById(id).orElse(null);
     }
-
+    public List<Comment> getRecentComments(int limit) {
+        Pageable pageable = PageRequest.of(0, limit);
+        return commentRepository.findRecentComments(pageable);
+    }
     public void deleteById(int id) {
         var comment = commentRepository.findById(id).orElse(null);
         if (comment == null) {

@@ -1,5 +1,9 @@
 import * as React from "react";
-import logo from "../../assets/images/logo.png";
+import SocialIcon from "./SocialIcon";
+import CategoryLink from "./CategoryLink";
+import FooterColumn from "./FooterColumn";
+import AppDownloadButton from "./AppDownloadButton";
+
 import { useState } from "react";
 export default function Footer() {
     const [isAdminPage, setIsAdminPage] = useState(false);
@@ -9,111 +13,69 @@ export default function Footer() {
             setIsAdminPage(true);
         }
     });
+    
+const socialIcons = [
+    { icon: "https://cdn.builder.io/api/v1/image/assets/TEMP/86855e3413a2ca60ba5eaf9af4a526332f8a2f1dca396da8c98b7eab16743e8e?placeholderIfAbsent=true&apiKey=f5b4066cc5864741a5497a6883272285", alt: "Social media icon 1" },
+    { icon: "https://cdn.builder.io/api/v1/image/assets/TEMP/09c929af987190c9943e8a168ee1f6ed8fb6810ce18363679b8fe1380e1980b7?placeholderIfAbsent=true&apiKey=f5b4066cc5864741a5497a6883272285", alt: "Social media icon 2" },
+    { icon: "https://cdn.builder.io/api/v1/image/assets/TEMP/3bc0915462da2876e9047177a8aa92856faef9dbed74d017459132dd5bba9564?placeholderIfAbsent=true&apiKey=f5b4066cc5864741a5497a6883272285", alt: "Social media icon 3" },
+    { icon: "https://cdn.builder.io/api/v1/image/assets/TEMP/8560ce00cb740287241c28521c513505fb1a2c8e99da162c942733b50eb0177a?placeholderIfAbsent=true&apiKey=f5b4066cc5864741a5497a6883272285", alt: "Social media icon 4" },
+    { icon: "https://cdn.builder.io/api/v1/image/assets/TEMP/8d1d701ad138a75c7f6a1a15e0fffe01b095a3c24a99dfa6668274d31d3d7ac3?placeholderIfAbsent=true&apiKey=f5b4066cc5864741a5497a6883272285", alt: "Social media icon 5" }
+  ];
+  
+  const categories = ["Development", "Finance & Accounting", "Design", "Business"];
+  const quickLinks = ["About", "Become Instructor", "Contact", "Career"];
+  const supportLinks = ["Help Center", "FAQs", "Terms & Condition", "Privacy Policy"];
     return (
         !isAdminPage && (
-            <footer className="flex flex-col self-stretch px-20 pt-16 pb-5 mt-16 w-full bg-white max-md:px-5 max-md:mt-10 max-md:max-w-full">
-                <div className="justify-between max-md:max-w-full">
-                    <div className="flex gap-5 max-md:flex-col max-md:gap-0">
-                        <div className="flex flex-col w-[37%] max-md:ml-0 max-md:w-full">
-                            <div className="flex flex-col grow text-base leading-6 text-neutral-800 max-md:mt-10">
-                                <img
-                                    loading="lazy"
-                                    src={logo}
-                                    alt="Logo"
-                                    className="w-11 aspect-square"
-                                />
-                                <div className="flex gap-1 mt-8 whitespace-nowrap rounded-md">
-                                    <img
-                                        loading="lazy"
-                                        src="https://cdn.builder.io/api/v1/image/assets/TEMP/c10d0eaa45588084870aba9aa41d04635e39e271b659dd6255d77b8795a17613?apiKey=9349475655ee4a448868f824f5feb11d&"
-                                        alt="Email icon"
-                                        className="shrink-0 my-auto w-5 aspect-square"
-                                    />
-                                    <a href="mailto:hello@skillbridge.com">
-                                        hello@skillbridge.com
-                                    </a>
-                                </div>
-                                <div className="flex gap-1 mt-3.5 rounded-md">
-                                    <img
-                                        loading="lazy"
-                                        src="https://cdn.builder.io/api/v1/image/assets/TEMP/4a3ea9408beff8f67037d20eeaa8af01772753db741ac10d13adf25cf2bfa01a?apiKey=9349475655ee4a448868f824f5feb11d&"
-                                        alt="Location icon"
-                                        className="shrink-0 my-auto w-5 aspect-square"
-                                    />
-                                    <span>Somewhere in the World</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="flex flex-col ml-5 w-[63%] max-md:ml-0 max-md:w-full">
-                            <div className="flex gap-5 items-start px-px max-md:flex-wrap max-md:mt-10">
-                                <div className="flex flex-col flex-1 leading-[150%]">
-                                    <h3 className="text-lg font-semibold text-neutral-800">
-                                        Home
-                                    </h3>
-                                    <a
-                                        href="#"
-                                        className="mt-2.5 text-base text-zinc-600"
-                                    >
-                                        Our Courses
-                                    </a>
-                                </div>
-                                <div className="flex flex-col flex-1 leading-[150%]">
-                                    <h3 className="text-lg font-semibold text-neutral-800">
-                                        About Us
-                                    </h3>
-                                    <a
-                                        href="#"
-                                        className="mt-2.5 text-base text-zinc-600"
-                                    >
-                                        Our Goals
-                                    </a>
-                                </div>
-                                <div className="flex flex-col flex-1 self-stretch">
-                                    <h3 className="text-lg font-semibold leading-7 text-neutral-800">
-                                        Social Profiles
-                                    </h3>
-                                    <div className="flex gap-3.5  mt-3.5 max-md:pr-5">
-                                        <a
-                                            href="#"
-                                            className="flex justify-center items-center p-3 w-11 h-11 rounded-md border border-gray-100 border-solid bg-neutral-100"
-                                        >
-                                            <img
-                                                loading="lazy"
-                                                src="https://cdn.builder.io/api/v1/image/assets/TEMP/512ae15cc801b3851d6dc28b4f5851bfd84f5df3eba63364449a2cfc11dd99bd?apiKey=9349475655ee4a448868f824f5feb11d&"
-                                                alt="Facebook icon"
-                                                className="w-5 aspect-square"
-                                            />
-                                        </a>
-                                        <a
-                                            href="#"
-                                            className="flex justify-center items-center p-3 w-11 h-11 rounded-md border border-gray-100 border-solid bg-neutral-100"
-                                        >
-                                            <img
-                                                loading="lazy"
-                                                src="https://cdn.builder.io/api/v1/image/assets/TEMP/553fad1c15c37ba57bb831b26c583dcc987b55cc21b565dd93d7ac6a70290d88?apiKey=9349475655ee4a448868f824f5feb11d&"
-                                                alt="Twitter icon"
-                                                className="w-5 aspect-square"
-                                            />
-                                        </a>
-                                        <a
-                                            href="#"
-                                            className="flex justify-center items-center p-3 w-11 h-11 rounded-md border border-gray-100 border-solid bg-neutral-100"
-                                        >
-                                            <img
-                                                loading="lazy"
-                                                src="https://cdn.builder.io/api/v1/image/assets/TEMP/798b0c0c99470f3eedd19f51353f177dc533fa93784e7913ac8527aa67373c38?apiKey=9349475655ee4a448868f824f5feb11d&"
-                                                alt="Instagram icon"
-                                                className="w-5 aspect-square"
-                                            />
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+            <footer className="flex flex-col justify-center items-center bg-neutral-800 bg-black p-5 w-full">
+            <div className="flex flex-wrap gap-6 items-start max-md:max-w-full">
+              <div className="flex flex-col justify-center min-w-[240px] w-[424px] max-md:max-w-full">
+                <div className="flex flex-col w-full text-justify max-w-[424px] max-md:max-w-full">
+                  <div className="flex gap-2.5 items-start self-start text-4xl font-semibold tracking-tighter leading-none text-white whitespace-nowrap">
+                    <img
+                      loading="lazy"
+                      src="https://cdn.builder.io/api/v1/image/assets/TEMP/400b7c79a483042a23f9f89c2309dc93eaed59d579cfd191779908816f4bb48d?placeholderIfAbsent=true&apiKey=f5b4066cc5864741a5497a6883272285"
+                      alt="E-tutor logo"
+                      className="object-contain shrink-0 aspect-square w-[46px]"
+                    />
+                    <div>Dream Catchers</div>
+                  </div>
+                  <div className="mt-5 text-sm tracking-normal leading-6 text-gray-400 max-md:max-w-full">
+                    Aliquam rhoncus ligula est, non pulvinar elit
+                    <br />
+                    convallis nec. Donec mattis odio at.
+                  </div>
                 </div>
-                {/* <hr className="shrink-0 mt-7 h-px bg-gray-100 border border-gray-100 border-solid max-md:max-w-full" /> */}
-            </footer>
+                <div className="flex gap-3 items-start self-start mt-7">
+                  {socialIcons.map((icon, index) => (
+                    <SocialIcon key={index} {...icon} />
+                  ))}
+                </div>
+              </div>
+      
+              <FooterColumn title="Top 4 Category">
+                {categories.map((category, index) => (
+                  <CategoryLink key={index} text={category} />
+                ))}
+              </FooterColumn>
+      
+              <FooterColumn title="Quick Links">
+                {quickLinks.map((link, index) => (
+                  <CategoryLink key={index} text={link} />
+                ))}
+              </FooterColumn>
+      
+              <FooterColumn title="Support">
+                {supportLinks.map((link, index) => (
+                  <CategoryLink key={index} text={link} />
+                ))}
+              </FooterColumn>
+      
+             
+            </div>
+      
+          
+          </footer>
         )
     );
 }

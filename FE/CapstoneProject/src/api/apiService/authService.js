@@ -186,6 +186,15 @@ export const getUserByRole = (role, page, size) => {
         Promise.reject(error);
     }
 };
+export const getAllUsers = (page, size) => {
+    try {
+        return privateInstance.get(
+            `/user/getAll&page=${page}&size=${size}`
+        );
+    } catch (error) {
+        Promise.reject(error);
+    }
+};
 
 export const getUserByPage = async (page, size) => {
     try {
@@ -349,12 +358,12 @@ export const getUserProgressForCourse = async (userId, courseId) => {
       return Promise.reject(error);
     }
   };
-  export const checkUserEnrollment = async (courseId, email) => {
+  export const checkUserEnrollment = async (courseId, userId) => {
     try {
-      const response = await userInstance.get(`/course/${courseId}/is-enrolled`, {
-        params: { email },
+      const response = await privateInstance.get(`/course/${courseId}/is-enrolled`, {
+        params: { userId },
       });
-      return response.data;
+      return response;
     } catch (error) {
       return Promise.reject(error.response ? error.response.data : error);
     }

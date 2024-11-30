@@ -40,9 +40,9 @@ export const CourseCard = memo(({ course, textBtn = "Get It Now", courseId = -1 
             }
         
             // Check enrollment status
-            const isEnrolledResponse = await userApi.checkUserEnrollment(courseId, email);
+            const isEnrolledResponse = await userApi.checkUserEnrollment(courseId, user.id);
             console.log(isEnrolledResponse)
-            const isEnrolled = isEnrolledResponse.data; // Assuming the backend returns a boolean
+            const isEnrolled = isEnrolledResponse; // Assuming the backend returns a boolean
         
             console.log("Enrollment status:", isEnrolled);
         
@@ -121,7 +121,7 @@ const CoursesComponent = () => {
     }, []);
     return (
         <section className="p-4 sm:px-5 sm:py-10 mx-auto max-w-[1200px]">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6">
                 {courses &&
                     courses.map((course, index) => (
                         <CourseCard key={index} course={course} courseId={course.id} />

@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -54,7 +55,39 @@ public class WritingService {
 
         return userEssayRepository.save(userEssay);
     }
+    public long getUserEssayCount(int userId) {
+        return userEssayRepository.countUserEssaysByUserId(userId);
+    }
 
+    public Double getUserAverageEssayScore(int userId) {
+        return userEssayRepository.findAverageEssayScoreByUserId(userId);
+    }
+
+    public long getTotalEssayCount() {
+        return userEssayRepository.countAllEssays();
+    }
+
+    public Double getAverageEssayScore() {
+        return userEssayRepository.findAverageEssayScore();
+    }
+
+    public List<UserEssay> getAllEssays() {
+        return userEssayRepository.findAllEssaysOrderedBySubmissionTime();
+    }
+    public List<UserEssayDTO> getAllEssaysWithUserNames() {
+        List<UserEssayDTO> essays = userEssayRepository.findAllEssaysWithUserNames();
+        return essays.stream().map(essay -> new UserEssayDTO(
+                essay.getId(),
+                essay.getContent(),
+                essay.getSubmissionTime(),
+                essay.getScore(),
+                essay.getEmail()
+        )).collect(Collectors.toList());
+    }
+
+    public List<UserEssay> getUserEssays(int userId) {
+        return userEssayRepository.findUserEssaysByUserId(userId);
+    }
     private String convertFeedbackToJson(EssayFeedback feedback) {
         try {
             ObjectMapper mapper = new ObjectMapper();

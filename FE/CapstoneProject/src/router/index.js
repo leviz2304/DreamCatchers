@@ -32,7 +32,8 @@ import CreatePost from "../pages/Post/create";
 import WritingTaskList from "../pages/admin/Test/WritingTask/List";
 import WritingTaskCreate from "../pages/admin/Test/WritingTask/Create";
 import WritingTaskEdit from "../pages/admin/Test/WritingTask/Edit";
-import WritingSubmission from "../pages/IELTS/WritingSubmission"
+import WritingSubmission from "../pages/IELTS/WritingSubmission";
+import UserHome from "../pages/user/courseFilterPage"
 const publicRoutes = [
     { path: "/", component: LandingPage },
     { path: "/sign-up", component: SignUp },
@@ -41,6 +42,8 @@ const publicRoutes = [
     { path: "/course/:id", component: Course },
     { path: "/posts/", component: Post },
     // { path: "/search/:query", component: SearchResults },
+    { path: "/courses", component: UserHome },
+
 ];
 
 const userRoutes = [

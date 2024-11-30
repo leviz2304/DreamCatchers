@@ -23,6 +23,10 @@ module.exports = withMT({
       extend: {
         colors: {
           'primary-100': '#FFEEE8',
+          primary: "#FF7A59",
+                secondary: "#7167FF",
+                success: "#4CAF50",
+                warning: "#FFC069",
         },
       },
     },

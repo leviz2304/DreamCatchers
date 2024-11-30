@@ -47,9 +47,12 @@ public class User implements UserDetails {
     private Role role;
 
     @OneToMany(mappedBy = "user",cascade = CascadeType.REMOVE)
+    @JsonIgnore
     private List<Comment> comments;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    @JsonIgnore
+
     private List<Notification> notifications = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
@@ -61,6 +64,8 @@ public class User implements UserDetails {
 
 
     @OneToMany(cascade = CascadeType.ALL)
+    @JsonIgnore
+
     List<Post> posts = new ArrayList<>();
 
     @PrePersist

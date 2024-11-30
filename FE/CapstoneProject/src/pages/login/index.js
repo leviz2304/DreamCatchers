@@ -9,7 +9,7 @@ import { Dialog, Transition } from "@headlessui/react";
 import ShowPassword from "../../component/auth/ShowPassword.js";
 import clsx from "clsx";
 import styles from "./Login.module.scss";
-
+import imgbanner from "../../assets/images/Illustrations.png"
 export default function Login() {
     const initFormForgotData = {
         email: "",
@@ -260,8 +260,16 @@ export default function Login() {
     console.log("re-render");
 
     return (
-        <div className="w-full flex">
-            <section className="boxShadow m-auto mt-40 flex flex-col p-10 mt-10 max-w-full text-base leading-6 bg-white rounded-xl text-neutral-800 w-[540px] max-md:px-5 max-md:mt-10">
+        <div className="flex h-screen">
+            <div className="hidden md:flex w-1/2 bg-gradient-to-br from-purple-100 to-indigo-100 items-center justify-center object-contain">
+                <img
+                    src={imgbanner}
+                    alt="Illustration"
+                    className="max-w-xxl"
+                />
+            </div>
+            <div className="flex w-full md:w-1/2 items-center justify-center mt-10">
+            <section className="boxShadow m-auto mt-40 flex flex-col p-10 max-w-full text-base leading-6 bg-white rounded-xl text-neutral-800 w-[540px] max-md:px-5 max-md:mt-10">
                 <h2 className="text-4xl font-semibold text-center max-md:max-w-full">
                     Login
                 </h2>
@@ -340,7 +348,7 @@ export default function Login() {
 
                     <button
                         type="submit"
-                        className="justify-center px-5 py-3.5 mt-5 text-sm font-medium text-center text-white bg-black rounded-lg max-md:max-w-full w-full"
+                        className="justify-center px-5 py-3.5 mt-5 text-sm font-medium text-center text-white bg-orange-500 max-md:max-w-full w-full"
                     >
                         Login
                     </button>
@@ -369,6 +377,9 @@ export default function Login() {
                     />
                 </p>
             </section>
+            </div>
+
+            
             <Transition appear show={isEmailModalOpen} as={Fragment}>
                 <Dialog as="div" className="relative z-10" onClose={closeModal}>
                     <Transition.Child

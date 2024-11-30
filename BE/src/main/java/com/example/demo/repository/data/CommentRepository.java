@@ -16,6 +16,7 @@ public interface CommentRepository extends JpaRepository<Comment, Integer> {
 
     @Query(value = "SELECT * FROM comment WHERE lesson_id = :lessonId ORDER BY date DESC", nativeQuery = true)
     Page<Comment> findAllByLessonId(int lessonId, Pageable pageable);
-
+    @Query("SELECT c FROM Comment c ORDER BY c.date DESC")
+    List<Comment> findRecentComments(Pageable pageable);
     List<Comment> findAllByParentId(int parentId);
 }

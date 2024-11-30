@@ -17,6 +17,7 @@ import { useDispatch, useSelector } from "react-redux";
 import Interceptors from "./Interceptor";
 import loginSlice from "./redux/reducers/loginSlice";
 import SidebarWithBurgerMenu from "./component/dashboard/Sidebar";
+import Sidebar from "./component/dashboard/SideBar2";
 const PrivateWrapper = ({ isAuthenticated }) => {
     const dispatch = useDispatch();
     if (isAuthenticated) {
@@ -104,7 +105,7 @@ function App() {
                                     <div className="flex bg-white">
                                         {/* <LeftNavDash></LeftNavDash> */}
                                         <div className="mt-20">
-                                        <SidebarWithBurgerMenu/>
+                                        <Sidebar/>
                                         </div>
                                                                             <div
                                             className={clsx(

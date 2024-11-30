@@ -30,6 +30,7 @@ public class UserEssay {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "writing_task_id")
+    @JsonIgnore
     private WritingTask writingTask;
 
     @ManyToOne(fetch = FetchType.LAZY)
