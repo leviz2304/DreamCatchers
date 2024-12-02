@@ -34,6 +34,12 @@ import WritingTaskCreate from "../pages/admin/Test/WritingTask/Create";
 import WritingTaskEdit from "../pages/admin/Test/WritingTask/Edit";
 import WritingSubmission from "../pages/IELTS/WritingSubmission";
 import UserHome from "../pages/user/courseFilterPage"
+import PracticeVocabulary from "../pages/IELTS/Quizlet/PracticeVocabulary";
+import CreateVocabularySet from "../pages/IELTS/Quizlet/CreateVocabularySet";
+import CreateCourse2 from "../pages/admin/Course/create2";
+import EditCourse2 from "../pages/admin/Course/edit2";
+import VocabularySetList from "../pages/IELTS/Quizlet/VocabularySetList";
+import FlashcardList from "../pages/IELTS/Quizlet/component/FlashcardList";
 const publicRoutes = [
     { path: "/", component: LandingPage },
     { path: "/sign-up", component: SignUp },
@@ -60,13 +66,21 @@ const userRoutes = [
     { path: "me/post/create", component: CreatePost },
     { path: "me/post/create/sub", component: SubContent },
     { path: "IELTS/Writing/Test", component: WritingSubmission },
+    { path: "IELTS/VOCAB/create", component: CreateVocabularySet },
+    { path: "IELTS/VOCAB/learn/:setId", component: PracticeVocabulary },
+    { path: "IELTS/VOCAB/sets", component: VocabularySetList },
+    { path: "IELTS/sets/:setId/flashcards", component: FlashcardList },
+
+    
 ];
 
 const adminRoutes = [
     { path: "/admin", component: AdminPage },
     { path: "/admin/course/list", component: ListCourse },
-    { path: "/admin/course/create", component: CreateCourse },
-    { path: "/admin/course/edit/:id", component: EditCourse },
+    // { path: "/admin/course/create", component: CreateCourse },
+
+    { path: "/admin/course/create", component: CreateCourse2 },
+    { path: "/admin/course/edit/:id", component: EditCourse2 },
     {
         path: "/admin/course/detail/:id",
         component: AdminDetailCourse,

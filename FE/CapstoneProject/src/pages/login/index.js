@@ -105,7 +105,7 @@ export default function Login() {
                     const prePath = sessionStorage.getItem("prevPath");
                     prePath ? navigate(prePath) : navigate("/");
                     sessionStorage.removeItem("prevPath");
-                    return "Welcome to Dream Chasers";
+                    return "Welcome to Dream Catchers";
                 },
                 error: (error) => {
                     console.log(error);

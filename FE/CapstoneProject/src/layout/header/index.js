@@ -192,9 +192,9 @@ export default function Header() {
                             className={`nav-header ${
                                 window.location.pathname === "/instructor" ? "nav-header-active" : ""
                             } px-4 py-2 text-black text-sm`}
-                            to="/instructor"
+                            to="IELTS/VOCAB/sets"
                         >
-                            Become an Instructor
+                            Quiz
                         </Link>
                     </nav>
                     <div className="flex gap-3 justify-between">

@@ -177,11 +177,12 @@ export const getUserByName = async (userName, page, size, isDelete = false) => {
     }
 };
 
-export const getUserByRole = (role, page, size) => {
+export const getUserByRole = async(role, page, size) => {
     try {
-        return privateInstance.get(
-            `/user/filter?role=${role}&page=${page}&size=${size}`
-        );
+        const result= await privateInstance.get(
+            `/user/filter?role=${role}&page=${page}&size=${size}`);
+        return result.content;
+
     } catch (error) {
         Promise.reject(error);
     }

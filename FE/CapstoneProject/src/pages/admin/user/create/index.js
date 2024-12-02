@@ -276,7 +276,7 @@ export default function CreateUser() {
                     </div>
                     <button
                         type="submit"
-                        className="justify-center px-5 py-3.5 mt-5 text-sm font-medium text-center text-white bg-black rounded-lg max-md:max-w-full w-full"
+                        className="justify-center px-5 py-3.5 mt-5 text-sm font-medium text-center text-white bg-orange-500 max-md:max-w-full w-full"
                     >
                         Sign Up
                     </button>

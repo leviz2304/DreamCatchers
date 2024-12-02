@@ -1,373 +1,322 @@
-import { useEffect, useState } from "react";
-import styles from "../../Course/list/List.module.scss";
-import clsx from "clsx";
+// ListCategory.jsx
+import React, { useEffect, useState } from "react";
+import {
+  Button,
+  TextField,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  Avatar,
+  IconButton,
+  Typography,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+  Select as MUISelect,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Pagination,
+  InputAdornment, // Đã thêm
+  Box, // Đã thêm để thay thế Grid nếu cần
+} from "@mui/material";
+import {
+  Delete as DeleteIcon,
+  Edit as EditIcon,
+  Visibility as VisibilityIcon,
+  Add as AddIcon,
+  Search as SearchIcon,
+} from "@mui/icons-material";
+import { useForm, Controller } from "react-hook-form";
+import { debounce } from "lodash";
 import { toast } from "sonner";
-import * as dataApi from "../../../../api/apiService/dataService";
 import { Link } from "react-router-dom";
-import deleteIcon from "../../../../assets/images/delete.svg";
-import viewIcon from "../../../../assets/images/view.svg";
-import editIcon from "../../../../assets/images/edit.svg";
-import noDataIcon from "../../../../assets/images/ic_noData.svg";
-import Modal from "../../../../component/modal";
+import clsx from "clsx";
+import styles from "./ListCategory.module.scss"; // Đảm bảo đường dẫn đúng
+import * as dataApi from "../../../../api/apiService/dataService"; // Đảm bảo đường dẫn đúng
+import noDataIcon from "../../../../assets/images/ic_noData.svg"; // Đã thêm
 
-import FooterDataAdmin from "../../../../component/footerDataAdmin";
+const rowsPerPageOptions = [5, 10, 25];
 
-const selectes = [5, 10, 25];
+const ListCategory = () => {
+  const { control, watch, setValue } = useForm({
+    defaultValues: {
+      search: "",
+      rowsPerPage: rowsPerPageOptions[0],
+    },
+  });
 
-function ListCategory() {
-    const [categories, setCategories] = useState([]);
-    const [deletedModalOpen, setDeletedModalOpen] = useState(false);
-    const [deleteId, setDeleteId] = useState(null);
-    const [totalData, setTotalData] = useState(0);
-    const [selected, setSelected] = useState(selectes[0]);
-    const [page, setPage] = useState(0);
-    const [render, setRender] = useState();
+  const [categories, setCategories] = useState([]);
+  const [deletedModalOpen, setDeletedModalOpen] = useState(false);
+  const [deleteId, setDeleteId] = useState(null);
+  const [totalData, setTotalData] = useState(0);
+  const [page, setPage] = useState(1); // Bắt đầu từ trang 1
+  const [isLoading, setIsLoading] = useState(false);
 
-    const handleRemoveCategory = () => {
-        const fetchApi = async () => {
-            toast.promise(dataApi.softDeleteCategoryById(deleteId), {
-                loading: "Removing...",
-                success: () => {
-                    setDeletedModalOpen(false);
-                    setRender(!render);
-                    return "Remove successfully";
-                },
-                error: (error) => {
-                    return error.content;
-                },
-            });
-        };
+  const searchTerm = watch("search");
+  const rowsPerPage = watch("rowsPerPage");
 
-        fetchApi();
-    };
+  // Debounced search handler
+  const handleSearch = debounce((value) => {
+    setPage(1); // Reset về trang đầu tiên khi tìm kiếm
+    fetchCategories(value, rowsPerPage, 1);
+  }, 500);
 
-    useEffect(() => {
-        const fetchApi = async () => {
-            try {
-                const result = await dataApi.getAllCategories(page, selected);
-                setTotalData(result.content.totalElements);
-                setCategories(result.content.content);
-            } catch (error) {
-                console.log(error.mess);
-            }
-        };
-        fetchApi();
-    }, [render]);
+  // Fetch categories based on search, pagination, and rows per page
+  const fetchCategories = async (search = "", limit = rowsPerPage, currentPage = page) => {
+    try {
+      setIsLoading(true);
+      let response;
+      if (search) {
+        response = await dataApi.getCategoryByTitle(search, currentPage - 1, limit);
+      } else {
+        response = await dataApi.getAllCategories(currentPage - 1, limit);
+      }
+      setCategories(response.content.content);
+      setTotalData(response.content.totalElements);
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+      toast.error("Failed to fetch categories.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-    const handleSelectPageSizeChange = (size) => {
-        setSelected(size);
-        const fetchApi = async () => {
-            try {
-                const result = await dataApi.getAllCategories(page, size);
-                setCategories(result.content.content);
-            } catch (error) {
-                console.log(error);
-            }
-        };
-        fetchApi();
-    };
+  // Initial fetch and fetch when search term or rows per page change
+  useEffect(() => {
+    fetchCategories(searchTerm, rowsPerPage, page);
+  }, [searchTerm, rowsPerPage, page]);
 
-    const handleSearchInputChange = (e) => {
-        const fetchApi = async () => {
-            try {
-                const result = await dataApi.getCategoryByTitle(
-                    e.target.value,
-                    page,
-                    selected
-                );
-                setCategories(result.content.content);
-                setTotalData(result.content.totalElements);
-            } catch (error) {
-                console.log(error);
-            }
-        };
-        const debounceApi = debounce(fetchApi, 300);
-        debounceApi();
-    };
+  // Handle rows per page change
+  const handleRowsPerPageChange = (event) => {
+    const value = event.target.value;
+    setValue("rowsPerPage", value);
+    setPage(1); // Reset về trang đầu tiên khi thay đổi số hàng trên mỗi trang
+  };
 
-    const handlePageData = async (action) => {
-        const currentTotalData = page * selected + selected;
-        if (action === "next" && currentTotalData < totalData) {
-            setPage((prev) => prev + 1);
-        }
-        if (action === "previous" && page > 0) {
-            setPage((prev) => prev - 1);
-        }
-    };
+  // Handle search input change
+  const onSearchChange = (e) => {
+    const value = e.target.value;
+    handleSearch(value);
+  };
 
-    let timerId;
+  // Handle page change
+  const handlePageChange = (event, value) => {
+    setPage(value);
+  };
 
-    const debounce = (func, delay = 600) => {
-        return () => {
-            clearTimeout(timerId);
-            timerId = setTimeout(() => {
-                func();
-            }, delay);
-        };
-    };
+  // Open delete confirmation dialog
+  const openDeleteDialog = (id) => {
+    setDeleteId(id);
+    setDeletedModalOpen(true);
+  };
 
-    const handleCloseModal = () => {
-        setDeletedModalOpen(false);
-    };
+  // Close delete confirmation dialog
+  const closeDeleteDialog = () => {
+    setDeletedModalOpen(false);
+    setDeleteId(null);
+  };
 
-    const openDeleteModal = (id) => {
-        setDeleteId(id);
-        setDeletedModalOpen(true);
-    };
+  // Handle category deletion
+  const handleDeleteCategory = async () => {
+    try {
+      await dataApi.softDeleteCategoryById(deleteId);
+      toast.success("Category removed successfully.");
+      closeDeleteDialog();
+      fetchCategories(searchTerm, rowsPerPage, page);
+    } catch (error) {
+      console.error("Error deleting category:", error);
+      toast.error("Failed to remove category.");
+    }
+  };
 
-    useEffect(() => {
-        const fetchApi = async () => {
-            try {
-                const result = await dataApi.getAllCategories(page, selected);
-                setCategories(result.content.content);
-            } catch (error) {
-                console.log(error);
-            }
-        };
-        fetchApi();
-    }, [page]);
+  return (
+    <div className="flex justify-center w-full">
+      <div className="container mt-5 mx-14">
+        <div className="wrapMainDash">
+          {/* Header */}
+          <div className={clsx(styles.topMain, "flex justify-between items-center mb-6")}>
+            <Typography variant="h4" component="h2">
+              List Categories
+            </Typography>
+            <Link to="/admin/category/create">
+              <Button variant="contained" color="primary" startIcon={<AddIcon />}>
+                New Category
+              </Button>
+            </Link>
+          </div>
 
-    return (
-        <div className="flex justify-center w-full ">
-            <div className="container mt-5 mx-14">
-                <div className="wrapMainDash">
-                    <div className={clsx(styles.topMain)}>
-                        <div className={clsx(styles.itemTopMain)}>
-                            <h4>List</h4>
-                        </div>
-                        <div className={clsx(styles.itemTopMain)}>
-                            <Link
-                                to={"/admin/category/create"}
-                                className={styles.btnCreate}
-                            >
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    aria-hidden="true"
-                                    role="img"
-                                    className="component-iconify MuiBox-root css-1t9pz9x iconify iconify--mingcute"
-                                    width="20px"
-                                    height="20px"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <g fill="none">
-                                        <path d="M24 0v24H0V0zM12.593 23.258l-.011.002l-.071.035l-.02.004l-.014-.004l-.071-.035c-.01-.004-.019-.001-.024.005l-.004.01l-.017.428l.005.02l.01.013l.104.074l.015.004l.012-.004l.104-.074l.012-.016l.004-.017l-.017-.427c-.002-.01-.009-.017-.017-.018m.265-.113l-.013.002l-.185.093l-.01.01l-.003.011l.018.43l.005.012l.008.007l.201.093c.012.004.023 0 .029-.008l.004-.014l-.034-.614c-.003-.012-.01-.02-.02-.022m-.715.002a.023.023 0 0 0-.027.006l-.006.014l-.034.614c0 .012.007.02.017.024l.015-.002l.201-.093l.01-.008l.004-.011l.017-.43l-.003-.012l-.01-.01z"></path>
-                                        <path
-                                            fill="currentColor"
-                                            d="M11 20a1 1 0 1 0 2 0v-7h7a1 1 0 1 0 0-2h-7V4a1 1 0 1 0-2 0v7H4a1 1 0 1 0 0 2h7z"
-                                        ></path>
-                                    </g>
-                                </svg>
-                                New Category
-                            </Link>
-                        </div>
-                    </div>
-
-                    <div className="formGroup flex flex-col gap-3">
-                        <div
-                            className={clsx(
-                                styles.contentMain,
-                                "flex justify-between"
-                            )}
-                        >
-                            <div className={clsx(styles.contentItem)}></div>
-                            <div
-                                className={clsx(styles.contentItem, "flex-1 ")}
-                            >
-                                <div
-                                    id="seachWrap"
-                                    className={clsx(styles.search, "mr-4")}
-                                >
-                                    {/* <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        aria-hidden="true"
-                                        role="img"
-                                        className="component-iconify MuiBox-root css-1kj4kj3 iconify iconify--eva"
-                                        width="1em"
-                                        height="1em"
-                                        viewBox="0 0 24 24"
-                                    >
-                                        <path
-                                            fill="currentColor"
-                                            d="m20.71 19.29l-3.4-3.39A7.92 7.92 0 0 0 19 11a8 8 0 1 0-8 8a7.92 7.92 0 0 0 4.9-1.69l3.39 3.4a1 1 0 0 0 1.42 0a1 1 0 0 0 0-1.42M5 11a6 6 0 1 1 6 6a6 6 0 0 1-6-6"
-                                        ></path>
-                                    </svg> */}
-                                    <input
-                                        onChange={handleSearchInputChange}
-                                        id="searchInput"
-                                        type="search"
-                                        placeholder="Search.."
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                        <div className={clsx(styles.mid)}>
-                            <div
-                                className={clsx(
-                                    styles.titleMid,
-                                    "row rounded-lg"
-                                )}
-                            >
-                                <div className="col-lg-2">Id</div>
-                                <div className="col-lg-5">Category</div>
-                                <div className="col-lg-3">Create at</div>
-                                <div className="col-lg-2">Action</div>
-                            </div>
-                            <div className={clsx(styles.containerData)}>
-                                {categories &&
-                                    categories.map((category, index) => {
-                                        const dateTime = new Date(
-                                            category.date
-                                        );
-
-                                        const date =
-                                            dateTime.toLocaleDateString(); // Lấy ngày tháng năm
-                                        const time =
-                                            dateTime.toLocaleTimeString();
-
-                                        return (
-                                            <div
-                                                key={index}
-                                                className={clsx(
-                                                    styles.item,
-                                                    "row rounded-lg"
-                                                )}
-                                            >
-                                                <div
-                                                    className={clsx(
-                                                        styles.field,
-                                                        "col-lg-2"
-                                                    )}
-                                                >
-                                                    <div
-                                                        className={clsx(
-                                                            styles.name
-                                                        )}
-                                                    >
-                                                        {category.id}
-                                                    </div>
-                                                </div>
-                                                <div
-                                                    className={clsx(
-                                                        styles.field,
-                                                        "col-lg-5 flex "
-                                                    )}
-                                                >
-                                                    <div className="overflow-hidden">
-                                                        <div
-                                                            className={clsx(
-                                                                styles.name
-                                                            )}
-                                                        >
-                                                            {category.name}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div
-                                                    className={clsx(
-                                                        styles.field,
-                                                        "col-lg-3"
-                                                    )}
-                                                >
-                                                    <div
-                                                        className={clsx(
-                                                            styles.name
-                                                        )}
-                                                    >
-                                                        {date}
-                                                        <br />
-                                                        {time}
-                                                    </div>
-                                                </div>
-                                                <div
-                                                    className={clsx(
-                                                        styles.field,
-                                                        "col-lg-2"
-                                                    )}
-                                                >
-                                                    <div
-                                                        className={clsx(
-                                                            styles.name,
-                                                            "flex gap-4"
-                                                        )}
-                                                    >
-                                                        <Link
-                                                            to={`/admin/category/detail/${category.id}`}
-                                                        >
-                                                            <img
-                                                                src={viewIcon}
-                                                                alt=""
-                                                            />
-                                                        </Link>
-                                                        <Link
-                                                            to={`/admin/category/edit/${category.id}`}
-                                                        >
-                                                            <img
-                                                                src={editIcon}
-                                                                alt=""
-                                                            />
-                                                        </Link>
-                                                        <button
-                                                            data-micromodal-trigger="modal-1"
-                                                            type="button"
-                                                            onClick={() =>
-                                                                openDeleteModal(
-                                                                    category.id
-                                                                )
-                                                            }
-                                                        >
-                                                            <img
-                                                                src={deleteIcon}
-                                                                alt=""
-                                                                className="cursor-pointer"
-                                                            />
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
-
-                                {!categories.length && (
-                                    <div
-                                        className={clsx(
-                                            styles.noData,
-                                            "flex flex-col justify-center text-center"
-                                        )}
-                                    >
-                                        <img
-                                            src={noDataIcon}
-                                            alt=""
-                                            className={clsx(
-                                                styles.noDataImg,
-                                                "m-auto w-32"
-                                            )}
-                                        />
-                                        <span>No Data</span>
-                                    </div>
-                                )}
-                            </div>
-                            <FooterDataAdmin
-                                handleSelectPageSizeChange={
-                                    handleSelectPageSizeChange
-                                }
-                                totalData={totalData}
-                                size={selected}
-                                page={page}
-                                setPage={setPage}
-                            ></FooterDataAdmin>
-                        </div>
-                    </div>
-                </div>
+          {/* Search and Rows Per Page */}
+          <div className={clsx(styles.formGroup, "mb-6")}>
+            <div className="flex flex-col sm:flex-row items-center gap-4">
+              {/* Search Field */}
+              <Controller
+                name="search"
+                control={control}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    label="Search by Title"
+                    variant="outlined"
+                    fullWidth
+                    slotProps={{
+                      input: {
+                        endAdornment: (
+                          <InputAdornment position="end">
+                            <SearchIcon />
+                          </InputAdornment>
+                        ),
+                      },
+                    }}
+                    onChange={(e) => {
+                      field.onChange(e); // Cập nhật giá trị trong react-hook-form
+                      onSearchChange(e); // Gọi hàm tìm kiếm
+                    }}
+                  />
+                )}
+              />
+              {/* Rows Per Page Select */}
+              <FormControl variant="outlined" size="small" className="w-40">
+                <InputLabel id="rows-per-page-label">Rows per page</InputLabel>
+                <Controller
+                  name="rowsPerPage"
+                  control={control}
+                  render={({ field }) => (
+                    <MUISelect
+                      {...field}
+                      labelId="rows-per-page-label"
+                      label="Rows per page"
+                      onChange={handleRowsPerPageChange}
+                    >
+                      {rowsPerPageOptions.map((option) => (
+                        <MenuItem key={option} value={option}>
+                          {option}
+                        </MenuItem>
+                      ))}
+                    </MUISelect>
+                  )}
+                />
+              </FormControl>
             </div>
-            <Modal
-                isOpen={deletedModalOpen}
-                closeModal={handleCloseModal}
-                title={"Delete"}
-                description={"Are you sure want to delete?"}
-                handleRemove={handleRemoveCategory}
-            ></Modal>
+          </div>
+
+          {/* Table */}
+          <TableContainer component={Paper} className="shadow-lg rounded-lg">
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>ID</TableCell>
+                  <TableCell>Category</TableCell>
+                  <TableCell>Create At</TableCell>
+                  <TableCell align="center">Action</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {isLoading ? (
+                  <TableRow>
+                    <TableCell colSpan={4} align="center">
+                      <Typography variant="body1">Loading...</Typography>
+                    </TableCell>
+                  </TableRow>
+                ) : categories.length > 0 ? (
+                  categories.map((category) => {
+                    const dateTime = new Date(category.date);
+                    const date = dateTime.toLocaleDateString();
+                    const time = dateTime.toLocaleTimeString();
+
+                    return (
+                      <TableRow key={category.id}>
+                        <TableCell>{category.id}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-4">
+                            <Typography variant="subtitle1">{category.name}</Typography>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Typography variant="body2">
+                            {date} <br /> {time}
+                          </Typography>
+                        </TableCell>
+                        <TableCell align="center">
+                          <div className="flex items-center gap-2 justify-center">
+                            <Link to={`/admin/category/detail/${category.id}`}>
+                              <IconButton color="primary">
+                                <VisibilityIcon />
+                              </IconButton>
+                            </Link>
+                            <Link to={`/admin/category/edit/${category.id}`}>
+                              <IconButton color="warning">
+                                <EditIcon />
+                              </IconButton>
+                            </Link>
+                            <IconButton color="error" onClick={() => openDeleteDialog(category.id)}>
+                              <DeleteIcon />
+                            </IconButton>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={4} align="center">
+                      <div className="flex flex-col items-center">
+                        <img src={noDataIcon} alt="No Data" className="w-32 mb-4" />
+                        <Typography variant="body1">No Data</Typography>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+
+          {/* Pagination */}
+          <div className="mt-4 flex flex-col sm:flex-row items-center justify-between">
+            <Typography variant="body2">
+              Showing {page * rowsPerPage - rowsPerPage + 1}-
+              {Math.min(page * rowsPerPage, totalData)} of {totalData}
+            </Typography>
+            <Pagination
+              count={Math.ceil(totalData / rowsPerPage)}
+              page={page}
+              onChange={handlePageChange}
+              color="primary"
+            />
+          </div>
         </div>
-    );
-}
+
+        {/* Delete Confirmation Dialog */}
+        <Dialog
+          open={deletedModalOpen}
+          onClose={closeDeleteDialog}
+          aria-labelledby="delete-dialog-title"
+          aria-describedby="delete-dialog-description"
+        >
+          <DialogTitle id="delete-dialog-title">Delete Category</DialogTitle>
+          <DialogContent>
+            <DialogContentText id="delete-dialog-description">
+              Are you sure you want to delete this category? This action cannot be undone.
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={closeDeleteDialog} color="primary">
+              Cancel
+            </Button>
+            <Button onClick={handleDeleteCategory} color="error" autoFocus>
+              Delete
+            </Button>
+          </DialogActions>
+        </Dialog>
+      </div>
+    </div>
+  );
+};
 
 export default ListCategory;

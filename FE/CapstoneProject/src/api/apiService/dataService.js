@@ -186,6 +186,52 @@ export const enrollInCourse = async (enrollData) => {
         return Promise.reject(error);
     }
 };
+// src/api/apiService.js
+export const generateVocabularySet = async (topic, quantity, level) => {
+    try {
+        const response = await privateInstance.post('/vocabulary-generation/generate', null, {
+            params: { topic, quantity, level },
+        });
+        return response;
+    } catch (error) {
+        return Promise.reject(error);
+    }
+};
+
+export const getVocabularySets = async () => {
+    try {
+        const response = await privateInstance.get('/vocabulary-generation/sets');
+        return response;
+    } catch (error) {
+        return Promise.reject(error);
+    }
+};
+// src/api/apiService.js
+export const updateVocabularySet = async (setId, setData) => {
+    try {
+        const response = await privateInstance.put(`/vocabulary-generation/sets/${setId}`, setData);
+        return response;
+    } catch (error) {
+        return Promise.reject(error);
+    }
+};
+
+export const getVocabularySetById = async (setId) => {
+    try {
+        const response = await privateInstance.get(`/vocabulary-generation/sets/${setId}`);
+        return response;
+    } catch (error) {
+        return Promise.reject(error);
+    }
+};
+
+export const deleteVocabularySet = async (setId) => {
+    try {
+        await privateInstance.delete(`/vocabulary-generation/sets/${setId}`);
+    } catch (error) {
+        return Promise.reject(error);
+    }
+};
 
 export const getUserIdByEmail = async (email) => {
     try {
