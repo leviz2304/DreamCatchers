@@ -36,7 +36,17 @@ const Sidebar = () => {
                     {isSmallScreen ? null : 'Categories'}
                 </ListItem>
                 </Link>
-                   <Link to='/admin/writing/list'> 
+                   <Link to='/admin/speaking-dashboard'> 
+                <ListItem>
+                   <ListItemPrefix>
+                        <InboxIcon className="h-5 w-5" />
+                    </ListItemPrefix>
+                    {isSmallScreen ? null : 'Speaking'}
+                    <ListItemSuffix>
+                    </ListItemSuffix>
+                </ListItem>
+                    </Link>
+                    <Link to='admin/writing-task/create'> 
                 <ListItem>
                    <ListItemPrefix>
                         <InboxIcon className="h-5 w-5" />

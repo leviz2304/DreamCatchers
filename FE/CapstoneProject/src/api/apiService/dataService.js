@@ -215,7 +215,115 @@ export const updateVocabularySet = async (setId, setData) => {
         return Promise.reject(error);
     }
 };
+export const createSpeakingTopic = async (topic) => {
+    try {
+        const response = await privateInstance.post("/speaking/topics", topic);
+        return response;
+    } catch (error) {
+        return Promise.reject(error.response.data);
+    }
+};
 
+export const updateSpeakingTopic = async (id, topic) => {
+    try {
+        const response = await privateInstance.put(`/speaking/topics/${id}`, topic);
+        return response;
+    } catch (error) {
+        return Promise.reject(error.response.data);
+    }
+};
+
+export const deleteSpeakingTopic = async (id) => {
+    try {
+        await privateInstance.delete(`/speaking/topics/${id}`);
+    } catch (error) {
+        return Promise.reject(error.response.data);
+    }
+};
+
+export const getAllSpeakingTopics = async () => {
+    try {
+        const response = await privateInstance.get("/speaking/topics");
+        return response;
+    } catch (error) {
+        return Promise.reject(error.response.data);
+    }
+};
+
+// CRUD for Speaking Questions
+export const createSpeakingQuestion = async (topicId, question) => {
+    try {
+        const response = await privateInstance.post(`/speaking/topics/${topicId}/questions`, question);
+        return response;
+    } catch (error) {
+        return Promise.reject(error.response.data);
+    }
+};
+
+export const updateSpeakingQuestion = async (id, question) => {
+    try {
+        const response = await privateInstance.put(`/speaking/questions/${id}`, question);
+        return response;
+    } catch (error) {
+        return Promise.reject(error.response.data);
+    }
+};
+
+export const deleteSpeakingQuestion = async (id) => {
+    try {
+        await privateInstance.delete(`/speaking/questions/${id}`);
+    } catch (error) {
+        return Promise.reject(error.response.data);
+    }
+};
+export const getQuestionById = async (id) => {
+    try {
+        const response = await privateInstance.get(`/questions/${id}`);
+        return response; // Assuming the backend returns the SpeakingQuestion object in the response body
+    } catch (error) {
+        console.error("Error fetching question by ID:", error);
+        return Promise.reject(error);
+    }
+};
+export const getAllQuestionsByTopic = async (topicId) => {
+    try {
+        const response = await privateInstance.get(`/speaking/topics/${topicId}/questions`);
+        return response;
+    } catch (error) {
+        return Promise.reject(error.response.data);
+    }
+};
+
+// Submit Speaking Response
+export const submitSpeakingResponse = async (userId, questionId, audioBlob) => {
+    try {
+        const formData = new FormData();
+        formData.append("audioFile", new File([audioBlob], "response.wav", { type: "audio/wav" }));
+        formData.append("userId", userId);
+        formData.append("questionId", questionId);
+
+        const response = await privateInstance.post("/speaking/submit", formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+
+        return response;
+    } catch (error) {
+        return Promise.reject(error.response.data);
+    }
+};
+
+
+// Retrieve User Feedbacks
+export const getUserSpeakingFeedbacks = async (userId) => {
+    try {
+        const response = await privateInstance.get(`/speaking/feedbacks/${userId}`);
+        return response;
+    } catch (error) {
+        return Promise.reject(error.response.data);
+    }
+};
 export const getVocabularySetById = async (setId) => {
     try {
         const response = await privateInstance.get(`/vocabulary-generation/sets/${setId}`);

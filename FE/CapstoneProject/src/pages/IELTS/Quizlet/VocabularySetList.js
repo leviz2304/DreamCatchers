@@ -65,6 +65,12 @@ const VocabularySetList = () => {
                         onChange={(e) => setSearch(e.target.value)}
                         className="w-full border border-gray-300 rounded-md p-2"
                     />
+                     <button
+                                    onClick={() => navigate(`/IELTS/VOCAB/create`)}
+                                    className="bg-green-500 text-white px-3 py-1 rounded-md"
+                                >
+                                    Tạo Bộ Từ Vựng
+                                </button>
                 </div>
             <h2 className="text-2xl font-bold mb-4">Bộ Từ Vựng Của Bạn</h2>
             {sets.length === 0 ? (

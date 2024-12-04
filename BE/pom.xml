@@ -22,6 +22,24 @@
 			<artifactId>spring-boot-starter-oauth2-client</artifactId>
 			<version>3.2.5</version>
 		</dependency>
+		<!-- Google Cloud Speech-to-Text -->
+		<!-- https://mvnrepository.com/artifact/com.google.cloud/google-cloud-speech -->
+		<dependency>
+			<groupId>com.google.cloud</groupId>
+			<artifactId>google-cloud-speech</artifactId>
+			<version>4.49.0</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.google.cloud</groupId>
+			<artifactId>google-cloud-storage</artifactId>
+			<version>2.22.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>31.1-jre</version>
+		</dependency>
 
 		<dependency>
 			<groupId>org.modelmapper</groupId>

@@ -40,6 +40,12 @@ import CreateCourse2 from "../pages/admin/Course/create2";
 import EditCourse2 from "../pages/admin/Course/edit2";
 import VocabularySetList from "../pages/IELTS/Quizlet/VocabularySetList";
 import FlashcardList from "../pages/IELTS/Quizlet/component/FlashcardList";
+import SpeakingDashboard from "../pages/admin/Speaking/components/SpeakingDashboard"
+import SpeakingTask  from "../pages/admin/Speaking/components/SpeakingTask"
+import EditVocabularySet from "../pages/IELTS/Quizlet/EditVocabularySet"
+import SpeakingTopics from "../pages/IELTS/index"
+import SpeakingTask2  from "../pages/admin/Speaking/components/SpeakingTask2"
+
 const publicRoutes = [
     { path: "/", component: LandingPage },
     { path: "/sign-up", component: SignUp },
@@ -66,12 +72,14 @@ const userRoutes = [
     { path: "me/post/create", component: CreatePost },
     { path: "me/post/create/sub", component: SubContent },
     { path: "IELTS/Writing/Test", component: WritingSubmission },
-    { path: "IELTS/VOCAB/create", component: CreateVocabularySet },
-    { path: "IELTS/VOCAB/learn/:setId", component: PracticeVocabulary },
-    { path: "IELTS/VOCAB/sets", component: VocabularySetList },
-    { path: "IELTS/sets/:setId/flashcards", component: FlashcardList },
+    { path: "/IELTS/VOCAB/create", component: CreateVocabularySet },
+    { path: "/IELTS/VOCAB/learn/:setId", component: PracticeVocabulary },
+    { path: "/IELTS/VOCAB/sets", component: VocabularySetList },
+    { path: "/IELTS/VOCAB/sets/:setId/flashcards", component: FlashcardList },
+    { path: "/speaking-task/:questionId", component: SpeakingTask2 },
+    { path: "/sets/:setId/edit", component: EditVocabularySet },
+    { path: "/IELTS", component: SpeakingTopics },
 
-    
 ];
 
 const adminRoutes = [
@@ -106,6 +114,9 @@ const adminRoutes = [
     { path: "/admin/invoice/list", component: ListInvoice },
     { path: "/admin/invoice/create", component: CreateCourse },
     { path: "/admin/invoice/historyDelete", component: ListDeleteInvoice },
+    { path: "/admin/speaking-dashboard", component: SpeakingDashboard  },
+
+
 ];
 
 export { publicRoutes, adminRoutes, userRoutes };

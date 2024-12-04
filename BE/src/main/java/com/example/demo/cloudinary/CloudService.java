@@ -4,12 +4,15 @@ import com.cloudinary.Cloudinary;
 import com.cloudinary.EagerTransformation;
 import com.cloudinary.utils.ObjectUtils;
 import com.example.demo.entity.data.Course;
+import com.example.demo.entity.data.SpeakingFeedback;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -84,4 +87,93 @@ public class CloudService {
             System.out.println("saveImageToCourse: " + e.getMessage());
         }
     }
+    public String uploadAudio(byte[] audioFile) {
+        try {
+            Map<?, ?> map = cloud.uploader().upload(audioFile, ObjectUtils.asMap(
+                    "resource_type", "audio",
+                    "folder", "dacs/audio"
+            ));
+
+            if (map != null && map.get("secure_url") != null) {
+                return map.get("secure_url").toString();
+            }
+        } catch (Exception e) {
+            System.err.println("uploadAudio Exception: " + e.getMessage());
+            if (e.getCause() != null) {
+                System.err.println("Cause: " + e.getCause().getMessage());
+            }
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+
+
+
+
+
+    /**
+     * Uploads multiple audio files to Cloudinary.
+     *
+     * @param audioFiles List of MultipartFile representing audio files.
+     * @return List of secure URLs for the uploaded audio files.
+     */
+    public List<String> uploadAudios(List<MultipartFile> audioFiles) {
+        List<String> secureUrls = new ArrayList<>();
+        for (MultipartFile audioFile : audioFiles) {
+            try {
+                // Kiểm tra loại file audio
+                if (!audioFile.getContentType().startsWith("audio/")) {
+                    System.err.println("Invalid audio format: " + audioFile.getOriginalFilename());
+                    continue;
+                }
+                Map<?, ?> map = cloud.uploader().upload(audioFile.getBytes(),
+                        ObjectUtils.asMap(
+                                "resource_type", "audio",
+                                "folder", "dacs/audio",
+                                "transformation", Arrays.asList(
+                                        new EagerTransformation().quality("auto")
+                                )
+                        ));
+                if (map != null && map.get("secure_url") != null) {
+                    secureUrls.add(map.get("secure_url").toString());
+                }
+            } catch (Exception e) {
+                System.err.println("Error uploading audio file " + audioFile.getOriginalFilename() + ": " + e.getMessage());
+                e.printStackTrace();
+            }
+        }
+        return secureUrls;
+    }
+
+
+    /**
+     * Asynchronously uploads an audio file and associates it with an entity.
+     * Adjust this method based on your specific requirements.
+     *
+     * @param audioFile Byte array of the audio file.
+     * @param targetEntity The entity to associate the audio with (e.g., SpeakingFeedback).
+     */
+    @Async("asyncExecutor")
+    public void saveAudioToEntity(byte[] audioFile, Object targetEntity) {
+        try {
+            String audioUrl = uploadAudio(audioFile);
+            if (audioUrl != null) {
+                // Liên kết với entity cụ thể
+                if (targetEntity instanceof SpeakingFeedback) {
+                    ((SpeakingFeedback) targetEntity).setAudioUrl(audioUrl);
+                    System.out.println("Audio URL successfully saved to entity: " + audioUrl);
+                } else {
+                    System.err.println("Unknown entity type. Audio URL not saved.");
+                }
+            } else {
+                System.err.println("Failed to upload audio file.");
+            }
+        } catch (Exception e) {
+            System.err.println("Error saving audio to entity: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
 }

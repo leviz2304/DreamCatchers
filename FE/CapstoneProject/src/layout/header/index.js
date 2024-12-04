@@ -166,9 +166,9 @@ export default function Header() {
                             className={`nav-header ${
                                 window.location.pathname === "/" ? "nav-header-active" : ""
                             } px-4 py-2 text-black text-sm`}
-                            to="/"
+                            to="/speaking-task"
                         >
-                            Home
+                            Speaking
                         </Link>
                         <Link
                             className={`nav-header ${
