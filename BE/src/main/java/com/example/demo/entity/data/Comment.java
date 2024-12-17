@@ -1,40 +1,43 @@
+// src/main/java/com/example/demo/entity/data/Comment.java
 package com.example.demo.entity.data;
 
 import com.example.demo.entity.user.User;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
-import java.util.Date;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
+@Table(name = "comments")
 @Data
-@Builder
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Comment {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
-    private LocalDateTime date;
-    @Column(columnDefinition = "TEXT")
+    private Integer id; // Sử dụng Integer như yêu cầu
+
+    @Column(length = 1000, nullable = false)
     private String content;
-    private String userEmail;
-    private String userName;
-    private String avatar;
-    private int parentId;
-    private String replyToUser;
-    private String replyToUserName;
 
-    @ManyToOne
-    @JsonIgnore
-    private User user;
+    private LocalDateTime createdAt;
 
-    @ManyToOne
-    @JsonIgnore
-    private Lesson lesson;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user; // Người dùng đăng bình luận
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "course_id", nullable = false)
+    private Course course; // Khóa học liên quan
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_comment_id")
+    private Comment parentComment; // Bình luận cha (nếu có)
+
+    @OneToMany(mappedBy = "parentComment", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Comment> replies = new ArrayList<>(); // Danh sách trả lời
 }

@@ -20,11 +20,11 @@ public class SpeakingFeedback {
     private int id;
 
     @Lob
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "LONGTEXT")
     private String transcript;
 
     @Lob
-    @Column(nullable = false,length = 65535)
+    @Column(nullable = false, columnDefinition = "LONGTEXT")
     private String feedbackJson; // JSON containing pronunciation, grammar, vocab feedback
 
     private LocalDateTime submissionTime;
@@ -40,5 +40,5 @@ public class SpeakingFeedback {
     private SpeakingQuestion question;
 
     @Column(nullable = true)
-    private String audioUrl; // URL of the uploaded audio in Cloudinary
+    private String audioUrl;
 }

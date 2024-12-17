@@ -9,6 +9,8 @@ import com.example.demo.repository.UserRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
@@ -33,7 +35,6 @@ public class WritingService {
     }
 
 
-
     @Transactional
     public UserEssay submitEssay(Integer userId, Integer writingTaskId, String essayContent) {
         User user = userRepository.findById(userId)
@@ -55,6 +56,7 @@ public class WritingService {
 
         return userEssayRepository.save(userEssay);
     }
+
     public long getUserEssayCount(int userId) {
         return userEssayRepository.countUserEssaysByUserId(userId);
     }
@@ -74,6 +76,7 @@ public class WritingService {
     public List<UserEssay> getAllEssays() {
         return userEssayRepository.findAllEssaysOrderedBySubmissionTime();
     }
+
     public List<UserEssayDTO> getAllEssaysWithUserNames() {
         List<UserEssayDTO> essays = userEssayRepository.findAllEssaysWithUserNames();
         return essays.stream().map(essay -> new UserEssayDTO(
@@ -88,6 +91,7 @@ public class WritingService {
     public List<UserEssay> getUserEssays(int userId) {
         return userEssayRepository.findUserEssaysByUserId(userId);
     }
+
     private String convertFeedbackToJson(EssayFeedback feedback) {
         try {
             ObjectMapper mapper = new ObjectMapper();
@@ -96,6 +100,7 @@ public class WritingService {
             throw new RuntimeException("Error converting feedback to JSON.");
         }
     }
+
     public WritingTask createWritingTask(WritingTask writingTask) {
         return writingTaskRepository.save(writingTask);
     }
@@ -114,5 +119,17 @@ public class WritingService {
                 .orElseThrow(() -> new ResourceNotFoundException("Task not found"));
         writingTaskRepository.delete(task);
     }
-    // Additional methods as needed
+
+    public Page<UserEssay> getUserEssays(Integer userId, Pageable pageable) {
+        return userEssayRepository.findAllByUserId(userId, pageable);
+        // Additional methods as needed
+    }
+    public UserEssay getEssayById(Integer essayId) {
+        return userEssayRepository.findById(essayId)
+                .orElseThrow(() -> new ResourceNotFoundException("UserEssay", "id", essayId));
+    }
+    public List<UserEssay> getUserEssays(Integer userId) {
+        return userEssayRepository.findAllByUserId(userId);
+    }
+
 }

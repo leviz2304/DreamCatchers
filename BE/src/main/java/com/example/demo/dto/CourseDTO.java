@@ -1,27 +1,30 @@
 package com.example.demo.dto;
 
-import com.example.demo.entity.data.Progress;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
-
-import java.time.LocalDateTime;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import java.util.List;
+import java.util.Set;
 
 @Data
-@Builder
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class CourseDTO {
+    private Integer id; // Sử dụng Integer thay vì Long
+
+    @NotBlank(message = "Title is mandatory")
+    @Size(max = 255, message = "Title can have at most 255 characters")
     private String title;
-    private int price;
-    private int discount;
+
+    @Size(max = 1000, message = "Description can have at most 1000 characters")
     private String description;
-    private LocalDateTime date;
-    private List<Integer> categories; // IDs of associated categories
-    private List<SectionDTO> sections; // Associated sections
-    private String thumbnail;
-    private String video;
-    private String instructor; // Instructor's email
-    private boolean isEditedCategories;
-    private boolean isEdited;
+
+    private String thumbnailUrl;
+    private String videoPreviewUrl;
+
+    private Integer tutorId;
+    private Set<Integer> categoryIds;
+
+    private List<SectionDTO> sections;
 }

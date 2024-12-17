@@ -1,29 +1,21 @@
 package com.example.demo.entity.data;
 
-import com.fasterxml.jackson.annotation.*;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-
 @Entity
-@Builder
-@Getter
-@Setter
-@AllArgsConstructor
+@Table(name = "categories")
+@Data
 @NoArgsConstructor
-@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "name")
+@AllArgsConstructor
+@Builder
 public class Category {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Integer id;
+
     private String name;
-    private LocalDateTime date;
-    private boolean isDeleted = false;
-    @ManyToMany(mappedBy = "categories")
-//! không được sử dụng @JsonBackReference() với Collections
-    @JsonIgnore
-    private List<Course> courses = new ArrayList<>();
+
+    // Các trường khác nếu cần
 }

@@ -16,7 +16,7 @@ public class UserEssay {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Integer id;
 
     @Column(columnDefinition = "TEXT")
     private String content; // User's essay content

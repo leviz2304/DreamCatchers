@@ -3,7 +3,6 @@ package com.example.demo.cloudinary;
 import com.cloudinary.Cloudinary;
 import com.cloudinary.EagerTransformation;
 import com.cloudinary.utils.ObjectUtils;
-import com.example.demo.entity.data.Course;
 import com.example.demo.entity.data.SpeakingFeedback;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Async;
@@ -11,8 +10,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -76,17 +73,7 @@ public class CloudService {
     }
 
     @Async("asyncExecutor")
-    public void saveImageToCourse(byte[] file, Course course) throws IOException {
-        try {
-            Map map = cloud.uploader().upload(file, ObjectUtils.asMap("resource_type", "auto", "folder", "dacs"));
-            if(map != null) {
-                course.setThumbnail(map.get("secure_url").toString());
-            }
-        }
-        catch (Exception e) {
-            System.out.println("saveImageToCourse: " + e.getMessage());
-        }
-    }
+
     public String uploadAudio(byte[] audioFile) {
         try {
             Map<?, ?> map = cloud.uploader().upload(audioFile, ObjectUtils.asMap(

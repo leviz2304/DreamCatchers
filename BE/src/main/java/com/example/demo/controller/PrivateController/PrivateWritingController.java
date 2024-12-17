@@ -16,8 +16,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -61,11 +64,38 @@ public class PrivateWritingController {
             throw new RuntimeException("Error converting feedback to JSON.");
         }
     }
-    @GetMapping("/essays/{userId}")
-    public ResponseEntity<List<UserEssay>> getUserEssays(@PathVariable int userId) {
-        List<UserEssay> essays = userEssayRepository.findAllByUserId(userId);
-        return ResponseEntity.ok(essays);
+
+    @GetMapping("/essays/history")
+    public ResponseEntity<ResponseObject> getUserEssayHistory(
+            @RequestParam Integer userId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        Page<UserEssay> essays = writingService.getUserEssays(userId, PageRequest.of(page, size));
+        return ResponseEntity.ok(
+                ResponseObject.builder()
+                        .status(HttpStatus.OK)
+                        .mess("Essay history retrieved successfully")
+                        .content(essays)
+                        .build()
+        );
     }
+
+
+
+    // Endpoint to get a specific essay by ID (optional)
+    @GetMapping("/essays/{essayId}")
+    public ResponseEntity<ResponseObject> getEssayById(@PathVariable Integer essayId, Authentication authentication) {
+        UserEssay essay = writingService.getEssayById(essayId);
+        return ResponseEntity.ok(
+                ResponseObject.builder()
+                        .status(HttpStatus.OK)
+                        .mess("Essay retrieved successfully")
+                        .content(essay)
+                        .build()
+        );
+    }
+
+
     @PostMapping("/tasks")
     public ResponseEntity<ResponseObject> createWritingTask(@RequestBody WritingTask writingTask) {
         WritingTask createdTask = writingService.createWritingTask(writingTask);

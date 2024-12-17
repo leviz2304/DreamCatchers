@@ -1,23 +1,19 @@
 package com.example.demo.dto;
 
-import lombok.Data;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
-import java.time.LocalDateTime;
-
-// NONE, REMOVE, UPDATE, HAS
-@Getter
 @Data
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class LessonDTO {
-    private int id;
-    private String linkVideo;
-    private String title;
-    private String description;
-    private LocalDateTime date;
-    private String video;
-    private boolean isEdited;
-    private String actionVideo = "NONE";
-    public LessonDTO(String value){}
+    private Integer id;
+
+    @NotBlank(message = "Lesson name is mandatory")
+    @Size(max = 255, message = "Lesson name can have at most 255 characters")
+    private String name;
+
+    private String videoUrl;
 }

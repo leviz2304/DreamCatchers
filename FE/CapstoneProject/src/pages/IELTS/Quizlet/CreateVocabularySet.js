@@ -19,7 +19,7 @@ const CreateVocabularySet = () => {
         try {
             const data = await generateVocabularySet(topic, quantity, level);
             toast.success('Tạo bộ từ vựng thành công');
-            navigate(`/IELTS/VOCAB/sets/${data.id}`); // Điều hướng đến đường dẫn đúng
+            navigate(`/IELTS/VOCAB/sets`);
         } catch (err) {
             setError(err.message || 'Đã xảy ra lỗi');
             toast.error(err.message || 'Đã xảy ra lỗi');

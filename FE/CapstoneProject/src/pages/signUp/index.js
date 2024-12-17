@@ -161,258 +161,198 @@ export default function SignUp() {
     }
 
     return (
-        <div className="w-full flex">
-            <section className="boxShadow m-auto flex flex-col p-10 mt-10 max-w-full text-base leading-6 bg-white rounded-xl text-neutral-800 w-[540px] max-md:px-5 max-md:mt-10">
-                <h2 className="text-4xl font-semibold text-center max-md:max-w-full">
-                    Sign Up
-                </h2>
+        <div className="w-full min-h-screen flex bg-white">
+        {/* Nửa trái: ảnh */}
+        <div className="hidden md:flex md:w-1/2 h-full">
+            <img
+                src="https://images.unsplash.com/photo-1593642531955-b62e0cda5e1e"
+                alt="Signup Image"
+                className="w-full h-full object-cover"
+            />
+        </div>
 
-                <form onSubmit={handleSubmit} method="post">
-                    <div className="flex mt-10">
-                        <div className="flex-1 mr-5">
-                            <div className="text-left">
-                                <label
-                                    htmlFor="firstName"
-                                    className="font-medium max-md:max-w-full"
-                                >
-                                    First Name
-                                </label>
-                                <input
-                                    type="text"
-                                    id="firstName"
-                                    name="firstName"
-                                    placeholder="Enter your First Name"
-                                    value={formData.firstName}
-                                    onChange={handleInputChange}
-                                    className={clsx(
-                                        styles.input,
-                                        `justify-center p-2.5 mt-2.5 
-                                    bg-white text-sm rounded-lg  
-                                    text-stone-500 max-md:max-w-full w-full outline-none`
-                                    )}
-                                />
-                                {errors.firstName !== "" && (
-                                    <div className="text-red-500 mt-1 text-sm ml-1">
-                                        {errors.firstName}
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                        <div className={clsx("flex-1 ml-5")}>
-                            <div className="text-left">
-                                <label
-                                    htmlFor="lastName"
-                                    className="font-medium max-md:max-w-full"
-                                >
-                                    Last Name
-                                </label>
-                                <input
-                                    type="text"
-                                    id="lastName"
-                                    name="lastName"
-                                    placeholder="Enter your Last Name"
-                                    value={formData.lastName}
-                                    onChange={handleInputChange}
-                                    className={clsx(
-                                        styles.input,
-                                        `justify-center p-2.5 mt-2.5 
-                                    bg-white text-sm rounded-lg  
-                                    text-stone-500 max-md:max-w-full w-full outline-none`
-                                    )}
-                                />
-                                {errors.lastName && (
-                                    <div className="text-red-500 mt-1 text-sm ml-1">
-                                        {errors.lastName}
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-                    <div className={clsx(styles.fieldForm, "text-left")}>
-                        <label
-                            htmlFor="email"
-                            className="font-medium max-md:max-w-full"
-                        >
-                            Email
+        {/* Nửa phải: form */}
+        <div className="w-[80%] md:w-1/2 flex flex-col justify-center p-6 bg-white mt-20">
+            <h2 className="text-3xl font-bold text-center text-black mb-6">
+                Sign Up
+            </h2>
+
+            <form onSubmit={handleSubmit} method="post" className="space-y-4">
+                <div className="flex space-x-2">
+                    <div className="flex-1">
+                        <label htmlFor="firstName" className="font-medium block mb-1 text-black">
+                            First Name
                         </label>
-                        <div
-                            className={clsx(
-                                styles.input,
-                                "flex p-2.5 mt-2.5 bg-white text-sm rounded-lg text-stone-500 max-md:flex-wrap"
-                            )}
-                        >
-                            <input
-                                type="email"
-                                id="email"
-                                name="email"
-                                value={formData.email}
-                                onChange={handleInputChange}
-                                placeholder="Enter your Email"
-                                className="flex-1 bg-transparent outline-none"
-                            />
-                        </div>
-                        {errors.email && (
-                            <div className="text-red-500 mt-1 text-sm ml-1">
-                                {errors.email}
-                            </div>
+                        <input
+                            type="text"
+                            id="firstName"
+                            name="firstName"
+                            placeholder="Enter your First Name"
+                            value={formData.firstName}
+                            onChange={handleInputChange}
+                            className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-orange-500 text-sm"
+                        />
+                        {errors.firstName && (
+                            <div className="text-red-500 text-xs mt-1">{errors.firstName}</div>
                         )}
                     </div>
-                    <div className={clsx(styles.fieldForm, "text-left")}>
-                        <label
-                            htmlFor="password"
-                            className="font-medium max-md:max-w-full"
-                        >
-                            Password
+                    <div className="flex-1">
+                        <label htmlFor="lastName" className="font-medium block mb-1 text-black">
+                            Last Name
                         </label>
-                        <div
-                            className={clsx(
-                                styles.input,
-                                "flex p-2.5 mt-2.5 bg-white text-sm rounded-lg text-stone-500 max-md:flex-wrap"
-                            )}
-                        >
-                            <input
-                                type="password"
-                                id="password"
-                                name="password"
-                                value={formData.password}
-                                onChange={handleInputChange}
-                                placeholder="Enter your Password"
-                                className="flex-1 bg-transparent outline-none"
-                            />
-                            <img
-                                loading="lazy"
-                                src="https://cdn.builder.io/api/v1/image/assets/TEMP/a8819b1cf48d19a6e95bc57cb5d373ec0162742f3cfe62b7ec31b90b0b48de06?apiKey=9349475655ee4a448868f824f5feb11d&"
-                                // src={eyeSlash}
-                                alt="Eye icon"
-                                className="cursor-pointer shrink-0 w-6 aspect-square"
-                                onClick={(e) =>
-                                    handleShowPassword(e, "password")
-                                }
-                            />
-                        </div>
-
-                        {errors.password && (
-                            <div className="text-red-500 mt-1 text-sm ml-1">
-                                {errors.password}
-                            </div>
+                        <input
+                            type="text"
+                            id="lastName"
+                            name="lastName"
+                            placeholder="Enter your Last Name"
+                            value={formData.lastName}
+                            onChange={handleInputChange}
+                            className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-orange-500 text-sm"
+                        />
+                        {errors.lastName && (
+                            <div className="text-red-500 text-xs mt-1">{errors.lastName}</div>
                         )}
                     </div>
-                    <div className={clsx(styles.fieldForm, "text-left")}>
-                        <label
-                            htmlFor="confirmPassword"
-                            className="font-medium max-md:max-w-full"
-                        >
-                            Confirm Password
-                        </label>
-                        <div
-                            className={clsx(
-                                styles.input,
-                                "flex p-2.5 mt-2.5 bg-white text-sm rounded-lg text-stone-500 max-md:flex-wrap"
-                            )}
-                        >
-                            <input
-                                type="password"
-                                name="confirmPassword"
-                                id="confirmPassword"
-                                // value={formData.confirmPassword}
-                                onChange={handleInputChange}
-                                placeholder="Enter your confirm Password"
-                                className="flex-1 bg-transparent outline-none"
-                            />
-                            <img
-                                loading="lazy"
-                                src="https://cdn.builder.io/api/v1/image/assets/TEMP/a8819b1cf48d19a6e95bc57cb5d373ec0162742f3cfe62b7ec31b90b0b48de06?apiKey=9349475655ee4a448868f824f5feb11d&"
-                                alt="Eye icon"
-                                className="cursor-pointer shrink-0 w-6 aspect-square"
-                                onClick={(e) =>
-                                    handleShowPassword(e, "confirmPassword")
-                                }
-                            />
-                        </div>
+                </div>
 
-                        {errors.confirmPassword && (
-                            <div className="text-red-500 mt-1 text-sm ml-1">
-                                {errors.confirmPassword}
-                            </div>
-                        )}
+                <div>
+                    <label htmlFor="email" className="font-medium block mb-1 text-black">
+                        Email
+                    </label>
+                    <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        value={formData.email}
+                        onChange={handleInputChange}
+                        placeholder="Enter your Email"
+                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-orange-500 text-sm"
+                    />
+                    {errors.email && (
+                        <div className="text-red-500 text-xs mt-1">{errors.email}</div>
+                    )}
+                </div>
+
+                <div>
+                    <label htmlFor="password" className="font-medium block mb-1 text-black">
+                        Password
+                    </label>
+                    <div className="flex items-center border border-gray-300 rounded">
+                        <input
+                            type="password"
+                            id="password"
+                            name="password"
+                            value={formData.password}
+                            onChange={handleInputChange}
+                            placeholder="Enter your Password"
+                            className="flex-1 p-2 focus:outline-none text-sm"
+                        />
+                        <img
+                            loading="lazy"
+                            src="https://cdn.builder.io/api/v1/image/assets/TEMP/a8819b1cf48d19a6e95bc57cb5d373ec0162742f3cfe62b7ec31b90b0b48de06"
+                            alt="Eye icon"
+                            className="cursor-pointer w-6 h-6 mr-2"
+                            onClick={(e) => handleShowPassword(e, "password")}
+                        />
                     </div>
-                    <div className={clsx(styles.fieldForm, "text-left")}>
-                        <label
-                            htmlFor="code"
-                            className="font-medium max-md:max-w-full"
+                    {errors.password && (
+                        <div className="text-red-500 text-xs mt-1">{errors.password}</div>
+                    )}
+                </div>
+
+                <div>
+                    <label htmlFor="confirmPassword" className="font-medium block mb-1 text-black">
+                        Confirm Password
+                    </label>
+                    <div className="flex items-center border border-gray-300 rounded">
+                        <input
+                            type="password"
+                            name="confirmPassword"
+                            id="confirmPassword"
+                            onChange={handleInputChange}
+                            placeholder="Enter your confirm Password"
+                            className="flex-1 p-2 focus:outline-none text-sm"
+                        />
+                        <img
+                            loading="lazy"
+                            src="https://cdn.builder.io/api/v1/image/assets/TEMP/a8819b1cf48d19a6e95bc57cb5d373ec0162742f3cfe62b7ec31b90b0b48de06"
+                            alt="Eye icon"
+                            className="cursor-pointer w-6 h-6 mr-2"
+                            onClick={(e) => handleShowPassword(e, "confirmPassword")}
+                        />
+                    </div>
+                    {errors.confirmPassword && (
+                        <div className="text-red-500 text-xs mt-1">{errors.confirmPassword}</div>
+                    )}
+                </div>
+
+                <div>
+                    <label htmlFor="code" className="font-medium block mb-1 text-black">
+                        Code
+                    </label>
+                    <div className="flex">
+                        <input
+                            type="text"
+                            id="code"
+                            name="code"
+                            placeholder="Enter your Code"
+                            className="p-2 border border-gray-300 rounded-l focus:outline-none focus:border-orange-500 flex-1 text-sm"
+                            onChange={handleInputChange}
+                        />
+                        <button
+                            className={`px-3 py-2 text-white text-sm rounded-r ${
+                                countdown > 0
+                                    ? "bg-gray-400 cursor-not-allowed"
+                                    : formData["email"].length === 0
+                                    ? "bg-gray-400 cursor-not-allowed"
+                                    : "bg-orange-500 hover:bg-orange-600"
+                            }`}
+                            onClick={(e) => {
+                                e.preventDefault();
+                                handleOtpButtonClick();
+                            }}
+                            disabled={countdown > 0 || formData["email"].length === 0}
                         >
-                            Code
-                        </label>
-                        <div
-                            className={clsx(
-                                styles.input,
-                                "flex mt-2.5 bg-white text-sm rounded-lg text-stone-500 max-md:flex-wrap"
-                            )}
-                        >
-                            <input
-                                type="text"
-                                id="code"
-                                name="code"
-                                placeholder="Enter your Code"
-                                className=" p-2 flex-1 bg-transparent outline-none"
-                                onChange={handleInputChange}
-                            />
-                            <button
-                                className={`px-2 py-1 m-0 rounded-md h-11 w-28 ${
-                                    countdown > 0
-                                        ? "bg-gray-400 text-white cursor-not-allowed"
-                                        : "bg-black text-white"
-                                }  ${
-                                    formData["email"].length === 0
-                                        ? "text-whit bg-gray-400"
-                                        : "bg-black text-white"
-                                }`}
-                                onClick={(e) => {
-                                    e.preventDefault();
-                                    handleOtpButtonClick();
-                                }}
-                                disabled={countdown > 0}
-                            >
-                                {countdown > 0 ? `${countdown}s` : "Send code"}
-                            </button>
-                        </div>
+                            {countdown > 0 ? `${countdown}s` : "Send code"}
+                        </button>
                     </div>
                     {errors.code && (
-                        <div className="text-left text-red-500 mt-1 text-sm ml-1">
-                            {errors.code}
-                        </div>
+                        <div className="text-red-500 text-xs mt-1">{errors.code}</div>
                     )}
-                    <button
-                        type="submit"
-                        className="justify-center px-5 py-3.5 mt-5 text-sm font-medium text-center text-white bg-black rounded-lg max-md:max-w-full w-full"
-                    >
-                        Sign Up
-                    </button>
-                </form>
-                <div className="mb-3 flex gap-3 justify-center items-center mt-6 text-sm text-center whitespace-nowrap text-neutral-400 max-md:flex-wrap">
-                    <hr className="flex-1 shrink-0 self-stretch my-auto h-px border border-solid bg-zinc-200 border-zinc-200" />
-                    <span className="self-stretch">OR</span>
-                    <hr className="flex-1 shrink-0 self-stretch my-auto h-px border border-solid bg-zinc-200 border-zinc-200" />
                 </div>
-                <OAuth2Form></OAuth2Form>
-                <p className="flex gap-1.5 justify-center px-20 mt-6 text-center max-md:flex-wrap max-md:px-5">
-                    <span>Already have an account?</span>{" "}
-                    <button
-                        onClick={handleGoToLogin}
-                        type="button"
-                        to="/login"
-                        className="cursor-pointer font-medium underline text-neutral-800"
-                    >
-                        Login
-                    </button>
-                    <img
-                        loading="lazy"
-                        src="https://cdn.builder.io/api/v1/image/assets/TEMP/52e263b3f77bfff5dc120002e909b75e45aba8be06ea8bd8be14872be77d8f38?apiKey=9349475655ee4a448868f824f5feb11d&"
-                        alt="Arrow icon"
-                        className="shrink-0 my-auto w-5 aspect-square"
-                    />
-                </p>
-            </section>
+
+                <button
+                    type="submit"
+                    className="w-full text-sm font-medium text-white bg-orange-500 hover:bg-orange-600 transition-colors py-3 mt-5 rounded"
+                >
+                    Sign Up
+                </button>
+            </form>
+
+            <div className="my-6 flex items-center gap-3 text-sm text-neutral-400">
+                <hr className="flex-1 border-zinc-200" />
+                <span>OR</span>
+                <hr className="flex-1 border-zinc-200" />
+            </div>
+            <OAuth2Form />
+
+            <div className="flex gap-1.5 justify-center mt-6 text-sm text-center text-neutral-800">
+                <span>Already have an account?</span>
+                <button
+                    onClick={handleGoToLogin}
+                    type="button"
+                    className="cursor-pointer font-medium underline"
+                >
+                    Login
+                </button>
+                <img
+                    loading="lazy"
+                    src="https://cdn.builder.io/api/v1/image/assets/TEMP/52e263b3f77bfff5dc120002e909b75e45aba8be06ea8bd8be14872be77d8f38"
+                    alt="Arrow icon"
+                    className="w-5 h-5"
+                />
+            </div>
         </div>
+    </div>
     );
 }

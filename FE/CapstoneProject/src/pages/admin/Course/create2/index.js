@@ -1,630 +1,299 @@
-// CreateCourse.jsx
-import React, { useEffect, useState } from "react";
+// src/pages/admin/Course/CreateCourse.js
+
+import React, { useState } from 'react';
+import UploadMedia from '../../../../component/Media/UploadMedia';
+import { createCourse } from '../../../../api/apiService/dataService';
+import { toast } from 'sonner'; // Hoặc bất kỳ thư viện thông báo nào bạn đang dùng
+import { useNavigate } from 'react-router-dom';
 import {
-  TextField,
-  Button,
-  Select,
-  MenuItem,
-  InputLabel,
-  FormControl,
-  FormHelperText,
-  Typography,
-  Grid,
-  IconButton,
-  Box,
-  Paper,
-} from "@mui/material";
-import { Close as CloseIcon, Upload as UploadIcon, Delete as DeleteIcon } from "@mui/icons-material";
-import { toast } from "sonner";
-import * as DataApi from "../../../../api/apiService/dataService";
+    Container,
+    Typography,
+    TextField,
+    Button,
+    IconButton,
+    Grid,
+    Paper,
+    Box,
+} from '@mui/material';
+import { AddCircle, RemoveCircle } from '@mui/icons-material';
 
-const initFormData = {
-  id: "",
-  title: "",
-  description: "",
-  price: "",
-  discount: "",
-  thumbnail: "",
-  video: "",
-  categories: [],
-  sections: [],
-  date: "",
-  instructor: "",
-};
+const CreateCourse = () => {
+    const [media, setMedia] = useState({ videoUrl: '', thumbnailUrl: '' });
+    const [courseData, setCourseData] = useState({
+        title: '',
+        description: '',
+        tutorId: '',
+        categoryIds: '',
+        sections: [
+            {
+                name: '',
+                lessons: [
+                    { name: '', videoUrl: '' }
+                ]
+            }
+        ]
+    });
+    const navigate = useNavigate();
 
-function CreateCourse() {
-  const [formData, setFormData] = useState(initFormData);
-  const [options, setOptions] = useState([]);
-  const [errors, setErrors] = useState({});
-  const [isUploading, setIsUploading] = useState(false);
-
-  useEffect(() => {
-    // Set instructor email on component mount
-    const instructorEmail = fetchInstructorEmail();
-    if (instructorEmail) {
-      setFormData((prev) => ({ ...prev, instructor: instructorEmail }));
-    } else {
-      toast.error("Failed to fetch instructor email from sessionStorage.");
-    }
-  }, []);
-
-  useEffect(() => {
-    const fetchApi = async () => {
-      try {
-        const result = await DataApi.getAllCategories(0, 99999999);
-        setOptions(result.content.content);
-      } catch (error) {
-        console.log(error.message);
-        toast.error("Failed to fetch categories.");
-      }
+    const handleMediaUpload = (uploadedMedia) => {
+        setMedia(uploadedMedia);
     };
-    fetchApi();
-  }, []);
 
-  const fetchInstructorEmail = () => {
-    const user = sessionStorage.getItem("user");
-    if (user) {
-      const parsedUser = JSON.parse(user);
-      return parsedUser.email || ""; // Default to an empty string if email is not found
-    }
-    return "";
-  };
+    const addSection = () => {
+        setCourseData({
+            ...courseData,
+            sections: [...courseData.sections, { name: '', lessons: [{ name: '', videoUrl: '' }] }]
+        });
+    };
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setErrors((prev) => ({ ...prev, [name]: "" }));
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
-  };
+    const removeSection = (index) => {
+        const newSections = courseData.sections.filter((_, i) => i !== index);
+        setCourseData({ ...courseData, sections: newSections });
+    };
 
-  const handleSelectChange = (event) => {
-    const {
-      target: { value },
-    } = event;
-    setFormData({
-      ...formData,
-      categories: typeof value === "string" ? value.split(",") : value,
-      isEditedCategories: true, // For BE validation
-    });
-    setErrors((prev) => ({ ...prev, categories: "" }));
-  };
+    const addLesson = (sectionIndex) => {
+        const newSections = [...courseData.sections];
+        newSections[sectionIndex].lessons.push({ name: '', videoUrl: '' });
+        setCourseData({ ...courseData, sections: newSections });
+    };
 
-  const handleFileChange = (e, index, sectionIndex) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    setIsUploading(true);
-    toast.promise(DataApi.uploadImg(file), {
-      loading: "Uploading file...",
-      success: (result) => {
-        setIsUploading(false);
-        if (file.type === "video/mp4") {
-          const updateSection = { ...formData.sections[sectionIndex] };
-          updateSection.lessons[index] = {
-            ...updateSection.lessons[index],
-            video: result.content,
-          };
-          const updateSections = [...formData.sections];
-          updateSections[sectionIndex] = updateSection;
+    const removeLesson = (sectionIndex, lessonIndex) => {
+        const newSections = [...courseData.sections];
+        newSections[sectionIndex].lessons = newSections[sectionIndex].lessons.filter((_, i) => i !== lessonIndex);
+        setCourseData({ ...courseData, sections: newSections });
+    };
 
-          setFormData({
-            ...formData,
-            sections: [...updateSections],
-          });
-        } else {
-          setFormData({
-            ...formData,
-            thumbnail: result.content,
-          });
+    const handleCourseChange = (e) => {
+        const { name, value } = e.target;
+        setCourseData({ ...courseData, [name]: value });
+    };
+
+    const handleSectionChange = (sectionIndex, e) => {
+        const { name, value } = e.target;
+        const newSections = [...courseData.sections];
+        newSections[sectionIndex][name] = value;
+        setCourseData({ ...courseData, sections: newSections });
+    };
+
+    const handleLessonChange = (sectionIndex, lessonIndex, e) => {
+        const { name, value } = e.target;
+        const newSections = [...courseData.sections];
+        newSections[sectionIndex].lessons[lessonIndex][name] = value;
+        setCourseData({ ...courseData, sections: newSections });
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+
+        // Validate media upload
+        if (!media.videoUrl || !media.thumbnailUrl) {
+            toast.error("Vui lòng upload video và thumbnail trước khi tạo khóa học.");
+            return;
         }
-        return "File uploaded successfully!";
-      },
-      error: (error) => {
-        console.log(error);
-        setIsUploading(false);
-        return "File upload failed.";
-      },
-    });
-    e.target.value = "";
-    setErrors((prev) => ({ ...prev, [e.target.name]: "" }));
-  };
 
-  const handleUpdateVideoCourse = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    setIsUploading(true);
-    toast.promise(DataApi.uploadImg(file), {
-      loading: "Uploading video...",
-      success: (result) => {
-        setIsUploading(false);
-        setFormData((prev) => ({
-          ...prev,
-          video: result.content,
-        }));
-        return "Video uploaded successfully!";
-      },
-      error: (error) => {
-        console.log(error);
-        setIsUploading(false);
-        return "Video upload failed.";
-      },
-    });
-    e.target.value = "";
-  };
+        // Validate course data
+        if (!courseData.title || !courseData.description || !courseData.tutorId || !courseData.categoryIds) {
+            toast.error("Vui lòng điền đầy đủ thông tin khóa học.");
+            return;
+        }
 
-  const handleRemoveItemPreview = (type, index, sectionIndex) => {
-    if (type === "video") {
-      const updateSection = { ...formData.sections[sectionIndex] };
-      updateSection.lessons[index] = {
-        ...updateSection.lessons[index],
-        video: null,
-        actionVideo: "NONE",
-      };
-      const updateSections = [...formData.sections];
-      updateSections[sectionIndex] = { ...updateSection };
-      setFormData({ ...formData, sections: [...updateSections] });
-    } else if (type === "thumbnail") {
-      setFormData({ ...formData, thumbnail: "" });
-    }
-  };
+        // Convert categoryIds từ chuỗi sang mảng số
+        const categoryIdsArray = courseData.categoryIds.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id));
 
-  const handleInputLessonChange = (e, index, sectionIndex) => {
-    const { name, value } = e.target;
-    const updateSections = [...formData.sections];
-    updateSections[sectionIndex].lessons[index] = {
-      ...updateSections[sectionIndex].lessons[index],
-      [name]: value,
+        // Prepare CourseDTO
+        const courseDTO = {
+            title: courseData.title,
+            description: courseData.description,
+            thumbnailUrl: media.thumbnailUrl,
+            videoPreviewUrl: media.videoUrl,
+            tutorId: parseInt(courseData.tutorId),
+            categoryIds: new Set(categoryIdsArray),
+            sections: courseData.sections.map(section => ({
+                name: section.name,
+                lessons: section.lessons.map(lesson => ({
+                    name: lesson.name,
+                    videoUrl: lesson.videoUrl
+                }))
+            }))
+        };
+
+        try {
+            const response = await createCourse(courseDTO);
+            toast.success("Tạo khóa học thành công!");
+            // Reset form hoặc chuyển hướng
+            setCourseData({
+                title: '',
+                description: '',
+                tutorId: '',
+                categoryIds: '',
+                sections: [
+                    {
+                        name: '',
+                        lessons: [
+                            { name: '', videoUrl: '' }
+                        ]
+                    }
+                ]
+            });
+            setMedia({ videoUrl: '', thumbnailUrl: '' });
+            navigate('/admin/courses'); // Chuyển hướng đến danh sách khóa học
+        } catch (error) {
+            console.error("Error creating course:", error);
+            toast.error("Tạo khóa học thất bại!");
+        }
     };
-    setFormData({
-      ...formData,
-      sections: updateSections,
-    });
-    setErrors((prev) => ({ ...prev, [`lesson-${sectionIndex}-${index}-${name}`]: "" }));
-  };
 
-  const handleRemoveLesson = (index, sectionIndex) => {
-    const updatedSections = [...formData.sections];
-    updatedSections[sectionIndex].lessons.splice(index, 1);
-    setFormData({
-      ...formData,
-      sections: updatedSections,
-    });
-  };
-
-  const handleAddLesson = (sectionIndex) => {
-    const newLesson = {
-      title: "",
-      description: "",
-      video: "",
-      linkVideo: "",
-    };
-    const updatedSections = [...formData.sections];
-    updatedSections[sectionIndex].lessons.push(newLesson);
-    setFormData({
-      ...formData,
-      sections: updatedSections,
-    });
-  };
-
-  const handleInputSectionChange = (e, sectionIndex) => {
-    const { value } = e.target;
-    const updatedSections = [...formData.sections];
-    updatedSections[sectionIndex].title = value;
-    updatedSections[sectionIndex].isEdited = true; // Ensure BE knows this is updated
-    setFormData({
-      ...formData,
-      sections: updatedSections,
-    });
-    setErrors((prev) => ({ ...prev, [`section-${sectionIndex}`]: "" }));
-  };
-
-  const handleRemoveSection = (index) => {
-    const updatedSections = [...formData.sections];
-    updatedSections.splice(index, 1);
-    setFormData({
-      ...formData,
-      sections: updatedSections,
-    });
-  };
-
-  const handleAddSection = () => {
-    const newSection = {
-      title: "",
-      lessons: [],
-    };
-    setFormData({
-      ...formData,
-      sections: [...formData.sections, newSection],
-    });
-  };
-
-  const handleRemoveVideoCourse = () => {
-    setFormData({ ...formData, video: "" });
-  };
-
-  const validateForm = (data) => {
-    const validationErrors = {};
-    if (!data.title.trim()) validationErrors.title = "Course Name is required.";
-    if (!data.description.trim()) validationErrors.description = "Description is required.";
-    if (!data.price || isNaN(data.price)) validationErrors.price = "Valid price is required.";
-    if (!data.thumbnail) validationErrors.thumbnail = "Thumbnail is required.";
-    if (data.categories.length === 0) validationErrors.categories = "At least one category is required.";
-    data.sections.forEach((section, sectionIndex) => {
-      if (!section.title.trim()) validationErrors[`section-${sectionIndex}`] = `Section ${sectionIndex + 1} Name is required.`;
-      section.lessons.forEach((lesson, lessonIndex) => {
-        if (!lesson.title.trim()) validationErrors[`lesson-title-${sectionIndex}-${lessonIndex}`] = `Lesson ${lessonIndex + 1} Name is required in Section ${sectionIndex + 1}.`;
-        if (!lesson.description.trim()) validationErrors[`lesson-description-${sectionIndex}-${lessonIndex}`] = `Lesson ${lessonIndex + 1} Description is required in Section ${sectionIndex + 1}.`;
-      });
-    });
-    return validationErrors;
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    if (isUploading) {
-      toast.error("Please wait for the file to finish uploading.");
-      return;
-    }
-
-    const validationErrors = validateForm(formData);
-    setErrors(validationErrors);
-
-    if (Object.keys(validationErrors).length > 0) {
-      toast.error("Please fill in all required fields.");
-      return;
-    }
-
-    // Prepare and sanitize the payload
-    const preparePayload = () => ({
-      title: formData.title,
-      description: formData.description,
-      price: Number(formData.price) || 0,
-      discount: Number(formData.discount) || 0,
-      thumbnail: formData.thumbnail,
-      video: formData.video,
-      categories: formData.categories.map((cate) => Number(cate.id)),
-      instructor: formData.instructor,
-      sections: formData.sections.map((section) => ({
-        title: section.title,
-        lessons: section.lessons.map((lesson) => ({
-          title: lesson.title,
-          description: lesson.description,
-          video: lesson.video || "",
-          linkVideo: lesson.linkVideo || "",
-        })),
-      })),
-      date: formData.date || null,
-    });
-
-    const payload = preparePayload();
-    console.log("Payload sent to API:", payload);
-
-    try {
-      await toast.promise(DataApi.createCourse(payload), {
-        loading: "Creating course...",
-        success: "Course created successfully!",
-        error: "Failed to create course.",
-      });
-      setFormData(initFormData); // Reset form on success
-    } catch (error) {
-      console.error("Error creating course:", error);
-      toast.error("Failed to create course. Please check your input.");
-    }
-  };
-
-  return (
-    <Box className="container mx-auto p-4">
-      <Paper elevation={3} className="p-6">
-        <Typography variant="h4" className="mb-6 text-center">
-          Create a New Course
-        </Typography>
-        <form onSubmit={handleSubmit}>
-          <Grid container spacing={4}>
-            {/* Course Title */}
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Course Name"
-                name="title"
-                value={formData.title}
-                onChange={handleInputChange}
-                error={!!errors.title}
-                helperText={errors.title}
-                required
-              />
-            </Grid>
-            {/* Description */}
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Description"
-                name="description"
-                value={formData.description}
-                onChange={handleInputChange}
-                error={!!errors.description}
-                helperText={errors.description}
-                required
-                multiline
-                rows={4}
-              />
-            </Grid>
-            {/* Categories and Price */}
-            <Grid item xs={12} md={6}>
-              <FormControl fullWidth error={!!errors.categories}>
-                <InputLabel id="categories-label">Categories</InputLabel>
-                <Select
-                  labelId="categories-label"
-                  multiple
-                  value={formData.categories}
-                  onChange={handleSelectChange}
-                  label="Categories"
-                  renderValue={(selected) => selected.map((s) => s.name).join(", ")}
-                >
-                  {options.map((option) => (
-                    <MenuItem key={option.id} value={option}>
-                      {option.name}
-                    </MenuItem>
-                  ))}
-                </Select>
-                {errors.categories && <FormHelperText>{errors.categories}</FormHelperText>}
-              </FormControl>
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Price"
-                name="price"
-                type="number"
-                value={formData.price}
-                onChange={handleInputChange}
-                error={!!errors.price}
-                helperText={errors.price}
-                required
-                inputProps={{ min: 0 }}
-              />
-            </Grid>
-            {/* Thumbnail */}
-            <Grid item xs={12} md={6}>
-              <Button
-                variant="outlined"
-                component="label"
-                startIcon={<UploadIcon />}
-                fullWidth
-                className="h-16"
-              >
-                Upload Thumbnail
-                <input
-                  type="file"
-                  accept=".jpg,.jpeg,.png"
-                  hidden
-                  onChange={(e) => handleFileChange(e)}
-                  name="thumbnail"
-                />
-              </Button>
-              {errors.thumbnail && (
-                <Typography variant="body2" color="error" className="mt-1">
-                  {errors.thumbnail}
-                </Typography>
-              )}
-            </Grid>
-            {/* Thumbnail Preview */}
-            {formData.thumbnail && (
-              <Grid item xs={12} md={6} className="flex items-center">
-                <Box className="relative w-full h-48">
-                  <img
-                    src={formData.thumbnail}
-                    alt="Thumbnail Preview"
-                    className="object-cover w-full h-full rounded"
-                  />
-                  <IconButton
-                    size="small"
-                    className="absolute top-2 right-2 bg-white bg-opacity-75 hover:bg-opacity-100"
-                    onClick={() => handleRemoveItemPreview("thumbnail")}
-                  >
-                    <CloseIcon fontSize="small" />
-                  </IconButton>
-                </Box>
-              </Grid>
-            )}
-            {/* Video */}
-            <Grid item xs={12} md={6}>
-              <Button
-                variant="outlined"
-                component="label"
-                startIcon={<UploadIcon />}
-                fullWidth
-                className="h-16"
-              >
-                Upload Video
-                <input
-                  type="file"
-                  accept=".mp4"
-                  hidden
-                  onChange={handleUpdateVideoCourse}
-                  name="video"
-                />
-              </Button>
-            </Grid>
-            {/* Video Preview */}
-            {formData.video && (
-              <Grid item xs={12} md={6} className="flex items-center">
-                <Box className="relative w-full h-48">
-                  <video
-                    src={formData.video}
-                    controls
-                    className="object-cover w-full h-full rounded"
-                  />
-                  <IconButton
-                    size="small"
-                    className="absolute top-2 right-2 bg-white bg-opacity-75 hover:bg-opacity-100"
-                    onClick={handleRemoveVideoCourse}
-                  >
-                    <CloseIcon fontSize="small" />
-                  </IconButton>
-                </Box>
-              </Grid>
-            )}
-            {/* Curriculum */}
-            <Grid item xs={12}>
-              <Typography variant="h5" className="mb-4 text-center">
-                Curriculum
-              </Typography>
-              {formData.sections.map((section, sectionIndex) => (
-                <Paper key={sectionIndex} elevation={2} className="p-4 mb-6">
-                  <Grid container spacing={2} alignItems="center">
-                    <Grid item xs={12} md={6}>
-                      <TextField
-                        fullWidth
-                        label={`Section ${sectionIndex + 1} Name`}
-                        name="sectionTitle"
-                        value={section.title}
-                        onChange={(e) => handleInputSectionChange(e, sectionIndex)}
-                        error={!!errors[`section-${sectionIndex}`]}
-                        helperText={errors[`section-${sectionIndex}`]}
-                        required
-                      />
-                    </Grid>
-                    <Grid item xs={12} md={6} className="flex justify-end">
-                      <Button
-                        variant="contained"
-                        color="error"
-                        startIcon={<DeleteIcon />}
-                        onClick={() => handleRemoveSection(sectionIndex)}
-                      >
-                        Remove Section
-                      </Button>
-                    </Grid>
-                  </Grid>
-                  {/* Lessons */}
-                  <Box className="mt-4">
-                    {section.lessons.map((lesson, lessonIndex) => (
-                      <Paper key={lessonIndex} elevation={1} className="p-4 mb-4">
-                        <Grid container spacing={2} alignItems="center">
-                          <Grid item xs={12} md={6}>
-                            <TextField
-                              fullWidth
-                              label={`Lesson ${lessonIndex + 1} Name`}
-                              name="title"
-                              value={lesson.title}
-                              onChange={(e) => handleInputLessonChange(e, lessonIndex, sectionIndex)}
-                              error={!!errors[`lesson-title-${sectionIndex}-${lessonIndex}`]}
-                              helperText={errors[`lesson-title-${sectionIndex}-${lessonIndex}`]}
-                              required
-                            />
-                          </Grid>
-                          <Grid item xs={12} md={6} className="flex justify-end">
-                            <Button
-                              variant="contained"
-                              color="error"
-                              startIcon={<DeleteIcon />}
-                              onClick={() => handleRemoveLesson(lessonIndex, sectionIndex)}
-                            >
-                              Remove Lesson
-                            </Button>
-                          </Grid>
-                          <Grid item xs={12}>
-                            <TextField
-                              fullWidth
-                              label="Description"
-                              name="description"
-                              value={lesson.description}
-                              onChange={(e) => handleInputLessonChange(e, lessonIndex, sectionIndex)}
-                              error={!!errors[`lesson-description-${sectionIndex}-${lessonIndex}`]}
-                              helperText={errors[`lesson-description-${sectionIndex}-${lessonIndex}`]}
-                              required
-                              multiline
-                              rows={3}
-                            />
-                          </Grid>
-                          {/* Video Upload */}
-                          <Grid item xs={12} md={6}>
-                            <Button
-                              variant="outlined"
-                              component="label"
-                              startIcon={<UploadIcon />}
-                              fullWidth
-                              className="h-16"
-                            >
-                              Upload Lesson Video
-                              <input
-                                type="file"
-                                accept=".mp4"
-                                hidden
-                                onChange={(e) => handleFileChange(e, lessonIndex, sectionIndex)}
-                                name="video"
-                              />
-                            </Button>
-                          </Grid>
-                          {/* Video Preview */}
-                          {lesson.video && (
-                            <Grid item xs={12} md={6} className="flex items-center">
-                              <Box className="relative w-full h-48">
-                                <video
-                                  src={lesson.video}
-                                  controls
-                                  className="object-cover w-full h-full rounded"
-                                />
-                                <IconButton
-                                  size="small"
-                                  className="absolute top-2 right-2 bg-white bg-opacity-75 hover:bg-opacity-100"
-                                  onClick={() => handleRemoveItemPreview("video", lessonIndex, sectionIndex)}
-                                >
-                                  <CloseIcon fontSize="small" />
-                                </IconButton>
-                              </Box>
-                            </Grid>
-                          )}
-                          {/* Link Video */}
-                          <Grid item xs={12}>
-                            <TextField
-                              fullWidth
-                              label="Link Video"
-                              name="linkVideo"
-                              value={lesson.linkVideo}
-                              onChange={(e) => handleInputLessonChange(e, lessonIndex, sectionIndex)}
-                            />
-                          </Grid>
-                        </Grid>
-                      </Paper>
-                    ))}
-                    <Button
-                      variant="outlined"
-                      onClick={() => handleAddLesson(sectionIndex)}
-                      startIcon={<UploadIcon />}
-                    >
-                      Add Lesson
-                    </Button>
-                  </Box>
-                </Paper>
-              ))}
-              <Button
-                variant="contained"
-                onClick={handleAddSection}
-                startIcon={<UploadIcon />}
-              >
-                Add Section
-              </Button>
-            </Grid>
-            {/* Submit Button */}
-            <Grid item xs={12} className="flex justify-center">
-              <Button
-                variant="contained"
-                color="primary"
-                type="submit"
-                size="large"
-                disabled={isUploading}
-                className="w-1/3"
-              >
+    return (
+        <Container maxWidth="lg">
+            <Typography variant="h4" gutterBottom>
                 Create Course
-              </Button>
-            </Grid>
-          </Grid>
-        </form>
-      </Paper>
-    </Box>
-  );
-}
+            </Typography>
+            <Paper sx={{ p: 3 }}>
+                <form onSubmit={handleSubmit}>
+                    <UploadMedia onUploadComplete={handleMediaUpload} />
+                    <Grid container spacing={2} sx={{ mt: 2 }}>
+                        <Grid item xs={12}>
+                            <TextField
+                                label="Title"
+                                name="title"
+                                value={courseData.title}
+                                onChange={handleCourseChange}
+                                fullWidth
+                                required
+                            />
+                        </Grid>
+                        <Grid item xs={12}>
+                            <TextField
+                                label="Description"
+                                name="description"
+                                value={courseData.description}
+                                onChange={handleCourseChange}
+                                fullWidth
+                                multiline
+                                rows={4}
+                                required
+                            />
+                        </Grid>
+                        <Grid item xs={12} sm={6}>
+                            <TextField
+                                label="Tutor ID"
+                                name="tutorId"
+                                type="number"
+                                value={courseData.tutorId}
+                                onChange={handleCourseChange}
+                                fullWidth
+                                required
+                            />
+                        </Grid>
+                        <Grid item xs={12} sm={6}>
+                            <TextField
+                                label="Category IDs (comma separated)"
+                                name="categoryIds"
+                                value={courseData.categoryIds}
+                                onChange={handleCourseChange}
+                                fullWidth
+                                required
+                                helperText="Ví dụ: 1,2,3"
+                            />
+                        </Grid>
+                    </Grid>
+                    <Box sx={{ mt: 4 }}>
+                        <Typography variant="h5">Sections</Typography>
+                        {courseData.sections.map((section, sectionIndex) => (
+                            <Paper key={sectionIndex} sx={{ p: 2, mt: 2, position: 'relative' }}>
+                                <IconButton
+                                    color="error"
+                                    onClick={() => removeSection(sectionIndex)}
+                                    sx={{ position: 'absolute', top: 10, right: 10 }}
+                                >
+                                    <RemoveCircle />
+                                </IconButton>
+                                <Grid container spacing={2}>
+                                    <Grid item xs={12}>
+                                        <TextField
+                                            label={`Section ${sectionIndex + 1} Name`}
+                                            name="name"
+                                            value={section.name}
+                                            onChange={e => handleSectionChange(sectionIndex, e)}
+                                            fullWidth
+                                            required
+                                        />
+                                    </Grid>
+                                    <Grid item xs={12}>
+                                        <Typography variant="subtitle1">Lessons</Typography>
+                                        {section.lessons.map((lesson, lessonIndex) => (
+                                            <Paper key={lessonIndex} sx={{ p: 2, mt: 1, position: 'relative' }}>
+                                                <IconButton
+                                                    color="error"
+                                                    onClick={() => removeLesson(sectionIndex, lessonIndex)}
+                                                    sx={{ position: 'absolute', top: 10, right: 10 }}
+                                                >
+                                                    <RemoveCircle />
+                                                </IconButton>
+                                                <Grid container spacing={2}>
+                                                    <Grid item xs={12} sm={6}>
+                                                        <TextField
+                                                            label={`Lesson ${lessonIndex + 1} Name`}
+                                                            name="name"
+                                                            value={lesson.name}
+                                                            onChange={e => handleLessonChange(sectionIndex, lessonIndex, e)}
+                                                            fullWidth
+                                                            required
+                                                        />
+                                                    </Grid>
+                                                    <Grid item xs={12} sm={6}>
+                                                        <TextField
+                                                            label={`Lesson ${lessonIndex + 1} Video URL`}
+                                                            name="videoUrl"
+                                                            value={lesson.videoUrl}
+                                                            onChange={e => handleLessonChange(sectionIndex, lessonIndex, e)}
+                                                            fullWidth
+                                                        />
+                                                        {lesson.videoUrl && (
+                                                            <Box sx={{ mt: 1 }}>
+                                                                <video width="240" height="180" controls>
+                                                                    <source src={lesson.videoUrl} type="video/mp4" />
+                                                                    Your browser does not support the video tag.
+                                                                </video>
+                                                            </Box>
+                                                        )}
+                                                    </Grid>
+                                                </Grid>
+                                            </Paper>
+                                        ))}
+                                        <Button
+                                            variant="outlined"
+                                            startIcon={<AddCircle />}
+                                            onClick={() => addLesson(sectionIndex)}
+                                            sx={{ mt: 1 }}
+                                        >
+                                            Add Lesson
+                                        </Button>
+                                    </Grid>
+                                </Grid>
+                            </Paper>
+                        ))}
+                        <Button
+                            variant="outlined"
+                            startIcon={<AddCircle />}
+                            onClick={addSection}
+                            sx={{ mt: 2 }}
+                        >
+                            Add Section
+                        </Button>
+                    </Box>
+                    <Button
+                        type="submit"
+                        variant="contained"
+                        color="primary"
+                        sx={{ mt: 4 }}
+                    >
+                        Create Course
+                    </Button>
+                </form>
+            </Paper>
+        </Container>
+    );
+};
 
 export default CreateCourse;

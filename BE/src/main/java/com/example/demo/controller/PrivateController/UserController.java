@@ -2,9 +2,7 @@ package com.example.demo.controller.PrivateController;
 
 import com.example.demo.auth.*;
 import com.example.demo.dto.PasswordDTO;
-import com.example.demo.dto.PostDTO;
 import com.example.demo.dto.ResponseObject;
-import com.example.demo.entity.user.Role;
 import com.example.demo.entity.user.User;
 import com.example.demo.mail.MailRequest;
 import com.example.demo.mail.MailService;
@@ -16,10 +14,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -31,12 +27,12 @@ public class UserController {
     private final UserService userService;
     private final UserRepository userRepository; // Or your service layer if you prefer
 
-    @PostMapping("/assign-role")
-    public ResponseEntity<?> assignRole(@RequestParam String email, @RequestParam String role) {
-        Role newRole = Role.valueOf(role.toUpperCase());
-        User updatedUser = authService.assignRoleToUser(email, newRole);
-        return ResponseEntity.ok(updatedUser);
-    }
+//    @PostMapping("/assign-role")
+//    public ResponseEntity<?> assignRole(@RequestParam String email, @RequestParam String role) {
+//        Role newRole = Role.valueOf(role.toUpperCase());
+//        User updatedUser = authService.assignRoleToUser(email, newRole);
+//        return ResponseEntity.ok(updatedUser);
+//    }
 
 
     @PutMapping("/resetPassword/{email}")

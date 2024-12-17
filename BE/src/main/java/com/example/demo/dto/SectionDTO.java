@@ -1,20 +1,22 @@
 package com.example.demo.dto;
 
-import com.example.demo.entity.data.Lesson;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
+import lombok.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import java.util.List;
 
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class SectionDTO {
-    private int id;
-    private String title;
-    private int isEdited;
-    private List<LessonDTO> lessons; // Associated lessons
+    private Integer id;
+
+    @NotBlank(message = "Section name is mandatory")
+    @Size(max = 255, message = "Section name can have at most 255 characters")
+    private String name;
+
+    private Integer courseId; // Sử dụng Integer để khớp với Course.id
+
+    private List<LessonDTO> lessons;
 }

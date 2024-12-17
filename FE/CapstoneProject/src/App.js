@@ -9,15 +9,14 @@ import { publicRoutes, adminRoutes, userRoutes } from "./router";
 import styles from "./App.module.scss";
 import { Toaster, toast } from "sonner";
 import Header from "./layout/header";
-import LeftNavDash from "./component/dashboard/leftNavDash";
 import HeaderAdmin from "./layout/headerAdmin";
 import clsx from "clsx";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import Interceptors from "./Interceptor";
 import loginSlice from "./redux/reducers/loginSlice";
-import SidebarWithBurgerMenu from "./component/dashboard/Sidebar";
 import Sidebar from "./component/dashboard/SideBar2";
+// import Header from "./component/navbarnew";
 const PrivateWrapper = ({ isAuthenticated }) => {
     const dispatch = useDispatch();
     if (isAuthenticated) {
@@ -78,7 +77,7 @@ function App() {
                                     {!route.path.includes("/course/detail") && (
                                         <Header />
                                     )}
-                                    <div className={clsx(styles.ptHeader,"pt-header")}>
+                                    <div className={clsx(styles.ptHeader,"ptheader")}>
                                         <route.component />
                                     </div>
                                 </>

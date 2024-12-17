@@ -23,7 +23,7 @@ import java.util.*;
 public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Integer id;
     private String email;
     private String password;
     private String firstName;
@@ -50,23 +50,10 @@ public class User implements UserDetails {
     @JsonIgnore
     private List<Comment> comments;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    @JsonIgnore
-
-    private List<Notification> notifications = new ArrayList<>();
-
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    List<Progress> progresses = new ArrayList<>();
-    @OneToMany(mappedBy = "instructor", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonIgnore // Bỏ qua courses khi serialize User
-
-    private List<Course> courses = new ArrayList<>();
 
 
-    @OneToMany(cascade = CascadeType.ALL)
-    @JsonIgnore
 
-    List<Post> posts = new ArrayList<>();
+
 
     @PrePersist
     protected  void onCreate() {

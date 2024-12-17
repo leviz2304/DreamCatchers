@@ -14,6 +14,12 @@ const withMT = require("@material-tailwind/react/utils/withMT");
 
 //     ],
 // };
+const defaultTheme = require("tailwindcss/defaultTheme");
+ 
+const colors = require("tailwindcss/colors");
+const {
+  default: flattenColorPalette,
+} = require("tailwindcss/lib/util/flattenColorPalette");
 module.exports = withMT({
     content: ["./src/**/*.{js,jsx,ts,tsx}",
         "./node_modules/react-tailwindcss-datepicker/dist/index.esm.js",
@@ -23,6 +29,10 @@ module.exports = withMT({
   ],
     theme: {
       extend: {
+        animation: {
+          scroll:
+            "scroll var(--animation-duration, 40s) var(--animation-direction, forwards) linear infinite",
+        },
         colors: {
           'primary-100': '#FFEEE8',
           primary: "#FF7A59",
@@ -30,7 +40,26 @@ module.exports = withMT({
                 success: "#4CAF50",
                 warning: "#FFC069",
         },
+        keyframes: {
+          scroll: {
+            to: {
+              transform: "translate(calc(-50% - 0.5rem))",
+            },
+          },
+        },
       },
     },
-    plugins: [],
+    plugins: [addVariablesForColors],
   });
+  function addVariablesForColors({ addBase, theme }) {
+    const allColors = flattenColorPalette(theme("colors"));
+    const newVars = Object.entries(allColors).reduce((acc, [key, val]) => {
+      acc[`--${key}`] = val;
+      return acc;
+    }, {});
+  
+    addBase({
+      ":root": newVars,
+    });
+  }
+  

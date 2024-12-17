@@ -3,7 +3,8 @@
 package com.example.demo.service;
 
 import com.example.demo.dto.SpeakingFeedbackDTO;
-import com.fasterxml.jackson.databind.JsonNode;
+import com.example.demo.dto.OpenAIRequest;
+import com.example.demo.dto.OpenAIResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,14 +27,7 @@ public class AIFeedbackService {
 
     private final RestTemplate restTemplate = new RestTemplate();
 
-    /**
-     * Generates feedback based on the transcript using OpenAI GPT-4.
-     *
-     * @param transcript The transcribed text from the user's audio.
-     * @param question   The IELTS speaking question.
-     * @param topic      The topic of the speaking task.
-     * @return SpeakingFeedbackDTO containing structured feedback.
-     */
+
     public SpeakingFeedbackDTO generateFeedback(String transcript, String question, String topic) {
         String url = "https://api.openai.com/v1/chat/completions";
 
@@ -42,7 +36,10 @@ public class AIFeedbackService {
         headers.setBearerAuth(openAiApiKey);
 
         String prompt = String.format(
-                "You are an IELTS examiner. Evaluate the following spoken response for Task 1. Provide feedback on pronunciation, grammar, and vocabulary errors. Respond in JSON format with the following structure:\n" +
+                "You are an IELTS examiner. Evaluate the following spoken response for IELTS Speaking Part 1. Provide feedback on pronunciation, grammar, and vocabulary errors. " +
+                        "Respond **only** with the JSON format as specified, and **do not include any additional text or formatting**. " +
+                        "**Do not include any Markdown formatting or code blocks.**\n\n" +
+                        "JSON structure:\n" +
                         "{\n" +
                         "  \"pronunciationErrors\": [\n" +
                         "    {\n" +
@@ -73,9 +70,86 @@ public class AIFeedbackService {
                 question, topic, transcript
         );
 
+
         // Prepare request payload
         Map<String, Object> payload = new HashMap<>();
-        payload.put("model", "gpt-4");
+        payload.put("model", "gpt-4o-mini");
+        List<Map<String, String>> messages = new ArrayList<>();
+        Map<String, String> systemMessage = new HashMap<>();
+        systemMessage.put("role", "system");
+        systemMessage.put("content", "You are a helpful assistant.");
+        Map<String, String> userMessage = new HashMap<>();
+        userMessage.put("role", "user");
+        userMessage.put("content", prompt);
+        messages.add(systemMessage);
+        messages.add(userMessage);
+        payload.put("messages", messages);
+
+        HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(payload, headers);
+
+        ResponseEntity<String> response = restTemplate.postForEntity(url, requestEntity, String.class);
+
+        if (response.getStatusCode() == HttpStatus.OK) {
+            // Parse the AI's JSON response
+            ObjectMapper mapper = new ObjectMapper();
+            try {
+                String aiResponse = mapper.readTree(response.getBody())
+                        .path("choices")
+                        .get(0)
+                        .path("message")
+                        .path("content")
+                        .asText();
+                aiResponse = cleanAIResponse(aiResponse);
+
+                // Convert the response to SpeakingFeedbackDTO
+                return SpeakingFeedbackDTO.fromJson(aiResponse);
+            } catch (IOException e) {
+                throw new RuntimeException("Failed to parse AI feedback response.", e);
+            }
+        } else {
+            throw new RuntimeException("Failed to get feedback from AI. Status: " + response.getStatusCode());
+        }
+    }
+
+    private String cleanAIResponse(String aiResponse) {
+        // Loại bỏ các ký tự không mong muốn
+        aiResponse = aiResponse.trim();
+
+        // Kiểm tra và loại bỏ phần mở đầu của code block
+        if (aiResponse.startsWith("```json")) {
+            aiResponse = aiResponse.substring(aiResponse.indexOf("```json") + 7).trim();
+            // Loại bỏ phần kết thúc của code block
+            if (aiResponse.endsWith("```")) {
+                aiResponse = aiResponse.substring(0, aiResponse.lastIndexOf("```")).trim();
+            }
+        } else if (aiResponse.startsWith("```")) {
+            aiResponse = aiResponse.substring(aiResponse.indexOf("```") + 3).trim();
+            // Loại bỏ phần kết thúc của code block
+            if (aiResponse.endsWith("```")) {
+                aiResponse = aiResponse.substring(0, aiResponse.lastIndexOf("```")).trim();
+            }
+        }
+
+        // Kiểm tra và loại bỏ bất kỳ ký tự không phải JSON nào ở đầu và cuối
+        int startIndex = aiResponse.indexOf("{");
+        int endIndex = aiResponse.lastIndexOf("}");
+        if (startIndex != -1 && endIndex != -1) {
+            aiResponse = aiResponse.substring(startIndex, endIndex + 1);
+        }
+
+        return aiResponse;
+    }
+
+    public String getAnswerSuggestions(String prompt) {
+        String url = "https://api.openai.com/v1/chat/completions";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setBearerAuth(openAiApiKey);
+
+        // Prepare request payload
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("model", "gpt-4o-mini");
         List<Map<String, String>> messages = new ArrayList<>();
         Map<String, String> systemMessage = new HashMap<>();
         systemMessage.put("role", "system");
@@ -102,13 +176,12 @@ public class AIFeedbackService {
                         .path("content")
                         .asText();
 
-                // Convert the response to SpeakingFeedbackDTO
-                return SpeakingFeedbackDTO.fromJson(aiResponse);
+                return aiResponse;
             } catch (IOException e) {
-                throw new RuntimeException("Failed to parse AI feedback response.", e);
+                throw new RuntimeException("Failed to parse AI answer suggestions response.", e);
             }
         } else {
-            throw new RuntimeException("Failed to get feedback from AI. Status: " + response.getStatusCode());
+            throw new RuntimeException("Failed to get answer suggestions from AI. Status: " + response.getStatusCode());
         }
     }
 }

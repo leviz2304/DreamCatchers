@@ -100,7 +100,7 @@ function SpeakingDashboard() {
     const fetchQuestions = async (topicId) => {
         try {
             const res = await dataApi.getAllQuestionsByTopic(topicId);
-            setQuestions(res);
+            setQuestions(res.content);
         } catch (error) {
             toast.error("Failed to fetch questions for the selected topic.");
         }

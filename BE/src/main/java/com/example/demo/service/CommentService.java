@@ -1,100 +1,68 @@
+// src/main/java/com/example/demo/service/CommentService.java
 package com.example.demo.service;
 
-import com.example.demo.dto.CommentDTO;
-import com.example.demo.dto.ResponseObject;
 import com.example.demo.entity.data.Comment;
-import com.example.demo.entity.data.Notification;
+import com.example.demo.entity.data.Course;
+import com.example.demo.entity.user.User;
+import com.example.demo.repository.CommentRepository;
+import com.example.demo.repository.data.CourseRepository;
 import com.example.demo.repository.UserRepository;
-import com.example.demo.repository.data.CommentRepository;
-import com.example.demo.repository.data.LessonRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
+import com.example.demo.repository.data.EnrollmentRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
-@RequiredArgsConstructor
-@Transactional
 public class CommentService {
-    private final UserRepository userRepository;
-    private  final CommentRepository commentRepository;
-    private  final LessonRepository lessonRepository;
 
-    public Comment getById(int id) {
-        return commentRepository.findById(id).orElse(null);
-    }
-    public List<Comment> getRecentComments(int limit) {
-        Pageable pageable = PageRequest.of(0, limit);
-        return commentRepository.findRecentComments(pageable);
-    }
-    public void deleteById(int id) {
-        var comment = commentRepository.findById(id).orElse(null);
-        if (comment == null) {
-            return ;
-        }
-        List<Comment> subComments = commentRepository.findAllByParentId(id);
+    @Autowired
+    private CommentRepository commentRepository;
 
-        if(!subComments.isEmpty()) {
-            for (Comment subComment : subComments) {
-                subComment.getUser().getComments().remove(subComment);
-                commentRepository.delete(subComment);
-            }
-        }
-        commentRepository.delete(comment);
-    }
-    public Notification saveNotification(CommentDTO commentDTO) {
-        var sendToUser = userRepository.findByEmail(commentDTO.getReplyToUser()).orElse(null);
-        if (sendToUser == null) {
-            System.out.println("sendToUser not found");
-            return null;
-        }
-        Notification notification = Notification.builder()
-                .content(commentDTO.getContent())
-                .date(LocalDateTime.now())
-                .fromUser(commentDTO.getUserName())
-                .user(sendToUser)
-                .img(commentDTO.getAvatar())
-                .path(commentDTO.getPath())
-                .content("Mentioned you in a comment")
-                .build();
-        if(notification == null)
-        {
-            System.out.println("Notification is null");
-        }
-        sendToUser.getNotifications().add(notification);
-        userRepository.save(sendToUser);
-        return notification;
+    @Autowired
+    private CourseRepository courseRepository;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private EnrollmentRepository enrollmentRepository;
+
+    // Lấy tất cả bình luận gốc và trả lời của một khóa học
+    public List<Comment> getCommentsByCourseId(Integer courseId) {
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new RuntimeException("Course not found"));
+        return commentRepository.findByCourseAndParentCommentIsNullOrderByCreatedAtAsc(course);
     }
 
-    public Comment saveComment(CommentDTO commentDTO) {
-        var user = userRepository.findByEmail(commentDTO.getEmail()).orElse(null);
-        var lesson = lessonRepository.findById(commentDTO.getLessonId()).orElse(null);
-        if (user == null || lesson == null) {
-            System.out.println("user || lesson not found");
-            return null;
+    // Thêm một bình luận mới (có thể là bình luận gốc hoặc trả lời)
+    public Comment addComment(Integer courseId, Integer userId, String content, Integer parentCommentId) {
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new RuntimeException("Course not found"));
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Kiểm tra xem người dùng đã enroll vào khóa học chưa
+        boolean isEnrolled = enrollmentRepository.existsByUserAndCourse(user, course);
+        if (!isEnrolled) {
+            throw new RuntimeException("User is not enrolled in this course");
         }
+
+        Comment parentComment = null;
+        if (parentCommentId != null) {
+            parentComment = commentRepository.findById(parentCommentId)
+                    .orElseThrow(() -> new RuntimeException("Parent comment not found"));
+        }
+
         Comment comment = Comment.builder()
-                .userEmail(commentDTO.getEmail())
-                .userName(commentDTO.getUserName())
-                .avatar(commentDTO.getAvatar())
+                .content(content)
+                .createdAt(LocalDateTime.now())
+                .course(course)
                 .user(user)
-                .content(commentDTO.getContent())
-                .lesson(lesson)
-                .parentId(commentDTO.getParentId())
-                .date(LocalDateTime.now())
-                .replyToUser(commentDTO.getReplyToUser())
-                .replyToUserName(commentDTO.getReplyToUserName())
+                .parentComment(parentComment)
                 .build();
-        return commentRepository.save(comment);
-    }
 
-    public ResponseObject getCommentByLessonId(int lessonId) {
-        var comments = commentRepository.findAllByLessonId(lessonId, PageRequest.of(0, Integer.MAX_VALUE));
-        return ResponseObject.builder().status(HttpStatus.OK).content(comments).build();
+        return commentRepository.save(comment);
     }
 }

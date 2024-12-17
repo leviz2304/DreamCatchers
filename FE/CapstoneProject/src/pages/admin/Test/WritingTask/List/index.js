@@ -13,7 +13,7 @@ export default function WritingTaskList() {
     const fetchTasks = async () => {
         try {
             const response = await getAllWritingTasks();
-            setTasks(response.content);
+            setTasks(response);
         } catch (error) {
             console.error("Error fetching tasks:", error);
         }

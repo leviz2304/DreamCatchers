@@ -61,17 +61,13 @@ public class GPTService {
 
     private List<Vocabulary> parseVocabularyFromGPTResponse(String response) {
         List<Vocabulary> vocabularies = new ArrayList<>();
-        // Giả sử GPT trả về danh sách dưới dạng:
-        // 1. Word1: Definition1. Example1.
-        // 2. Word2: Definition2. Example2.
+      
         String[] lines = response.split("\n");
         for (String line : lines) {
             line = line.trim();
-            if (line.matches("^\\d+\\.\\s+.*")) { // Kiểm tra dòng bắt đầu bằng số.
-                // Tách số thứ tự
+            if (line.matches("^\\d+\\.\\s+.*")) {
                 int dotIndex = line.indexOf('.');
                 String content = line.substring(dotIndex + 1).trim();
-                // Tách từ, định nghĩa và ví dụ
                 String[] parts = content.split(":");
                 if (parts.length >= 2) {
                     String word = parts[0].trim();

@@ -21,3 +21,20 @@ html {
 w-1400 {
     width: 1400px !important;
 }
+@keyframes rgb {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+  
+  .animate-rgb {
+    animation: rgb 3s ease infinite;
+    background-size: 200% 200%;
+  }
+  

@@ -3,6 +3,7 @@
 package com.example.demo.service;
 
 import com.example.demo.cloudinary.CloudService;
+import com.example.demo.dto.AIChatRequestDTO;
 import com.example.demo.dto.SpeakingFeedbackDTO;
 import com.example.demo.entity.data.SpeakingFeedback;
 import com.example.demo.entity.data.SpeakingQuestion;
@@ -33,12 +34,17 @@ public class SpeakingService {
     private final AIFeedbackService aiFeedbackService;
     private final CloudService cloudService;
     private final AudioStorageService audioStorageService;
+    private final AIFeedBackService2 aiFeedBackService2;
     // CRUD for Speaking Topics
     public SpeakingTopic createSpeakingTopic(SpeakingTopic topic) {
         if (speakingTopicRepository.existsByName(topic.getName())) {
             throw new IllegalArgumentException("Topic with this name already exists.");
         }
         return speakingTopicRepository.save(topic);
+    }
+    public SpeakingQuestion getQuestionById(int questionId) {
+        return speakingQuestionRepository.findById(questionId)
+                .orElseThrow(() -> new ResourceNotFoundException("SpeakingQuestion", "id", questionId));
     }
 
     public SpeakingTopic updateSpeakingTopic(int id, SpeakingTopic updatedTopic) {
@@ -134,5 +140,8 @@ public class SpeakingService {
     // Retrieve Feedbacks
     public List<SpeakingFeedback> getUserSpeakingFeedbacks(int userId) {
         return speakingFeedbackRepository.findByUserId(userId);
+    }
+    public String generateAnswer(AIChatRequestDTO chatRequest) {
+        return aiFeedBackService2.generateAnswer(chatRequest);
     }
 }

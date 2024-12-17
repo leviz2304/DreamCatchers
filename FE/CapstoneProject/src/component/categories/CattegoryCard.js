@@ -1,38 +1,41 @@
-import React, { useEffect, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import * as dataApi from "../../api/apiService/dataService"
-
-const TopCategories = ({ category }) => {
-  return (
-    <div className="bg-orange-100 shadow-md w-full h-20  rounded-lg p-4 m-2 lg:w-1/4 px-28 lg:justify-center">
-      <h3 className="text-lg font-bold mb-2">{category.name}</h3>
-      {/* <p className="text-gray-600">{category.count} Courses</p> */}
-    </div>
-  );
-};
+import React, { useState, useEffect } from "react";
+import * as dataApi from "../../api/apiService/dataService";
+import { InfiniteMovingCards } from "../InfiniteMovingCards";
 
 const CategoryCard = () => {
-  const dispatch=useDispatch()
-  const [categories,setCategories]=useState([])
-  console.log(categories)
-  const [courses, setCourses] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
-      const fetchApi = async () => {
-          try {
-              const result = await dataApi.getAllCategories(0, 100);
-              console.log("Hello"+result.content)
-              setCategories(result.content.content);
-          } catch (error) {
-              console.log("error: " + error);
-          }
-      };
-      fetchApi();
+    const fetchApi = async () => {
+      try {
+        const result = await dataApi.getCategories();
+        setCategories(
+          result.content.map((category) => ({
+            name: category.name,
+          }))
+        );
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchApi();
   }, []);
+
   return (
-    <div className="flex flex-wrap justify-center mb-6 sm:w-full">
-      {categories &&categories.map((category,index) => (
-        <TopCategories key={category.name} category={category} />
-      ))}
+    <div className="max-w-7xl mx-auto px-4">
+      {loading ? (
+        <div className="text-center text-gray-500">Loading categories...</div>
+      ) : (
+        <InfiniteMovingCards
+          items={categories}
+          direction="left"
+          speed="normal"
+          className="mt-6"
+        />
+      )}
     </div>
   );
 };

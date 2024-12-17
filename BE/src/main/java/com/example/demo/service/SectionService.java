@@ -1,152 +1,85 @@
-package com.example.demo.service;
-
-import com.example.demo.dto.CourseDTO;
-import com.example.demo.dto.LessonDTO;
-import com.example.demo.entity.data.Course;
-import com.example.demo.entity.data.Lesson;
-import com.example.demo.entity.data.Section;
-import com.example.demo.repository.data.SectionRepository;
-import com.example.demo.dto.SectionDTO;
-import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.AutoConfigureOrder;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-
-@Service
-@Transactional
-@RequiredArgsConstructor
-public class SectionService {
-
-    @Autowired
-    private SectionRepository sectionRepository;
-    @Autowired
-    private LessonService lessonService;
-
-    public void removeSection(Section section) {
-        sectionRepository.delete(section);
-    }
-
-    public void removeAllSection(List<Section> sections) {
-        sectionRepository.deleteAll(sections);
-    }
-
-    public Section findById(int id) {
-        return sectionRepository.findById(id).orElse(null);
-    }
-
-    public void deleteSection(int id) {
-        var section = sectionRepository.findById(id).orElse(null);
-        if (section != null) {
-            section.setDeleted(true);
-            sectionRepository.save(section);
-        }
-    }
-
-    public List<Section> getSectionsByCourse(Course course, boolean isDeleted) {
-        return sectionRepository.findSectionsByCourse(course.getId(), isDeleted).orElse(null);
-    }
-
-    public void updateSection(SectionDTO sectionDTO) {
-        var section = sectionRepository.findById(sectionDTO.getId()).orElse(null);
-
-        if (section != null) {
-            section.setTitle(sectionDTO.getTitle());
-            var lesson = lessonService.updateLessonsOfSection(section, sectionDTO);
-            section.setLessons(lesson);
-            sectionRepository.save(section);
-        }
-    }
-
-    public void addListSectionDtoToCourse(Course course, List<SectionDTO> sectionDTOs) {
-        if (course.getSections() == null) course.setSections(new ArrayList<>());
-        for (var sectionDTO : sectionDTOs) {
-            var section = Section.builder()
-                    .title(sectionDTO.getTitle())
-                    .course(course)
-                    .build();
-
-            List<Lesson> lessons = new ArrayList<>();
-            for (LessonDTO lessonDTO : sectionDTO.getLessons()) {
-                Lesson lesson = Lesson.builder()
-                        .description(lessonDTO.getDescription())
-                        .linkVideo(lessonDTO.getLinkVideo())
-                        .title(lessonDTO.getTitle())
-                        .video(lessonDTO.getVideo())
-                        .date(LocalDateTime.now())
-                        .section(section)
-                        .build();
-                lessons.add(lesson);
-            }
-            section.setLessons(lessons);
-            course.getSections().add(section);
-            sectionRepository.save(section);
-        }
-    }
-
-
-
-    public void updateSections(CourseDTO courseDTO, Course course) {
-        if (courseDTO.getSections().isEmpty()) {
-            if (course.getSections() == null || course.getSections().isEmpty()) return;
-            else {
-                course.getSections().forEach(section -> {
-                    section.setDeleted(true);
-                    sectionRepository.save(section);
-                });
-                return;
-            }
-        }
-
-        var updateSections = new ArrayList<Section>();
-        for (var sectionDTO : courseDTO.getSections()) {
-            Section section;
-            if (sectionDTO.getId() == 0) {
-                section = Section.builder()
-                        .title(sectionDTO.getTitle())
-                        .course(course)
-                        .build();
-
-                List<Lesson> lessons = new ArrayList<>();
-                for (LessonDTO lessonDTO : sectionDTO.getLessons()) {
-                    Lesson lesson = Lesson.builder()
-                            .description(lessonDTO.getDescription())
-                            .linkVideo(lessonDTO.getLinkVideo())
-                            .title(lessonDTO.getTitle())
-                            .video(lessonDTO.getVideo())
-                            .date(LocalDateTime.now())
-                            .section(section)
-                            .build();
-                    lessons.add(lesson);
-                }
-                section.setLessons(lessons);
-                course.getSections().add(section);
-                updateSections.add(section);
-            } else {
-                section = sectionRepository.findById(sectionDTO.getId()).orElse(null);
-                if (section != null) {
-                    section.setTitle(sectionDTO.getTitle());
-                    var lessons = lessonService.updateLessonsOfSection(section, sectionDTO);
-                    section.setLessons(lessons);
-                    updateSections.add(section);
-                }
-            }
-
-            assert section != null;
-            sectionRepository.save(section);
-        }
-
-        course.getSections().forEach(section -> {
-            if (!updateSections.contains(section)) {
-                section.setDeleted(true);
-                sectionRepository.save(section);
-            }
-        });
-    }
-
-
-}
+//package com.example.demo.service;
+//
+//import com.example.demo.dto.SectionDTO;
+//import com.example.demo.entity.data.Course;
+//import com.example.demo.entity.data.Section;
+//import com.example.demo.mapper.SectionMapper;
+//import com.example.demo.repository.data.CourseRepository;
+//import com.example.demo.repository.data.SectionRepository;
+//import org.springframework.beans.factory.annotation.Autowired;
+//import org.springframework.stereotype.Service;
+//
+//import java.util.*;
+//import java.util.stream.Collectors;
+//
+//@Service
+//public class SectionService {
+//
+//    @Autowired
+//    private SectionRepository sectionRepository;
+//
+//    @Autowired
+//    private CourseRepository courseRepository;
+//
+//    @Autowired
+//    private SectionMapper sectionMapper;
+//
+//    // Tạo mới hoặc cập nhật Section
+//    public SectionDTO saveSection(SectionDTO sectionDTO) {
+//        Section section = sectionMapper.toEntity(sectionDTO);
+//
+//        // Liên kết với Course
+//        Optional<Course> courseOpt = courseRepository.findById(sectionDTO.getCourseId());
+//        if (!courseOpt.isPresent()) {
+//            throw new RuntimeException("Course not found with id: " + sectionDTO.getCourseId());
+//        }
+//        section.setCourse(courseOpt.get());
+//
+//        Section savedSection = sectionRepository.save(section);
+//        return sectionMapper.toDTO(savedSection);
+//    }
+//
+//    // Lấy tất cả các Section
+//    public List<SectionDTO> getAllSections() {
+//        return sectionRepository.findAll().stream()
+//                .map(sectionMapper::toDTO)
+//                .collect(Collectors.toList());
+//    }
+//
+//    // Lấy Section theo ID
+//    public Optional<SectionDTO> getSectionById(Integer id) {
+//        return sectionRepository.findById(id)
+//                .map(sectionMapper::toDTO);
+//    }
+//
+//    // Xóa Section
+//    public void deleteSection(Integer id) {
+//        sectionRepository.deleteById(id);
+//    }
+//
+//    // Cập nhật Section
+//    public SectionDTO updateSection(Integer id, SectionDTO sectionDTO) {
+//        Optional<Section> optionalSection = sectionRepository.findById(id);
+//        if (!optionalSection.isPresent()) {
+//            throw new RuntimeException("Section not found with id: " + id);
+//        }
+//        Section section = optionalSection.get();
+//
+//        // Cập nhật thông tin cơ bản
+//        section.setName(sectionDTO.getName());
+//
+//        // Cập nhật Course nếu cần
+//        if (sectionDTO.getCourseId() != null) {
+//            Optional<Course> courseOpt = courseRepository.findById(sectionDTO.getCourseId());
+//            if (!courseOpt.isPresent()) {
+//                throw new RuntimeException("Course not found with id: " + sectionDTO.getCourseId());
+//            }
+//            section.setCourse(courseOpt.get());
+//        }
+//
+//        // Cập nhật Lessons nếu cần (nếu bạn có logic cụ thể)
+//
+//        Section updatedSection = sectionRepository.save(section);
+//        return sectionMapper.toDTO(updatedSection);
+//    }
+//}

@@ -1,9 +1,7 @@
 package com.example.demo.dto;
 
-import com.example.demo.entity.data.Progress;
 import com.example.demo.entity.user.Role;
 import com.example.demo.entity.user.User;
-import jakarta.persistence.Entity;
 import lombok.*;
 
 import java.util.List;
@@ -24,7 +22,6 @@ public class UserDTO {
     private String avatar;
     private String phoneNumber;
     private String token;
-    private List<Progress> progresses;
     private Role role;
 
     public UserDTO(User user) {

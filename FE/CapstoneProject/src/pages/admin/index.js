@@ -12,7 +12,7 @@ import {
 } from "@mui/material";
 import { motion } from "framer-motion";
 import { School, People, LibraryBooks, Article } from "@mui/icons-material";
-import RecentComments from "./Comment";
+// import RecentComments from "./Comment";
 import AdminEssayStatistics from "./Writing/AdminStatistics";
 import EssayDataTable from "./Writing/EssayDataTable";
 import { getAdminStatistics } from "../../api/apiService/dataService";
@@ -118,9 +118,9 @@ const Dashboard = () => {
                 sx={{ textAlign: "center" }}
               />
               <CardContent>
-                <Typography variant="h4" align="center" color="inherit">
+                {/* <Typography variant="h4" align="center" color="inherit">
                   {stat.value.toLocaleString()}
-                </Typography>
+                </Typography> */}
               </CardContent>
             </Card>
           </motion.div>
@@ -148,7 +148,7 @@ const Dashboard = () => {
               boxShadow: "0 8px 16px rgba(0,0,0,0.1)",
             }}
           >
-            <RecentComments />
+            {/* <RecentComments /> */}
           </Paper>
         </motion.div>
 

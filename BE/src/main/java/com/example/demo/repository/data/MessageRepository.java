@@ -20,9 +20,6 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
     @Query("SELECT DISTINCT m.chatRoomId FROM Message m WHERE m.sender = :email OR m.receiver = :email")
     List<String> findChatRoomsByUser(@Param("email") String email);
     boolean existsByChatRoomId(String chatRoomId);
-    @Query("SELECT DISTINCT m.sender FROM Message m WHERE m.receiver.id = :instructorId")
-    List<User> findDistinctStudentsByInstructorId(@Param("instructorId") Integer instructorId);
-    @Query("SELECT DISTINCT p.user FROM Progress p WHERE p.course.instructor.id = :instructorId")
-    List<User> findStudentsByInstructorId(@Param("instructorId") Integer instructorId);
+
 
 }

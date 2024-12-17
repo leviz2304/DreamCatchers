@@ -1,8 +1,11 @@
+// src/main/java/com/example/demo/service/ExternalEssayEvaluationService.java
+
 package com.example.demo.service;
 
 import com.example.demo.dto.EssayFeedback;
 import com.example.demo.dto.OpenAIRequest;
 import com.example.demo.dto.OpenAIResponse;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -47,8 +50,8 @@ public class ExternalEssayEvaluationService {
         OpenAIRequest requestPayload = new OpenAIRequest();
         requestPayload.setModel("gpt-4o-mini");
         requestPayload.setMessages(Arrays.asList(
-                new OpenAIRequest.Message("system", "You are an IELTS examiner."),
-                new OpenAIRequest.Message("user", buildUserMessage(prompt, essayContent))
+                new OpenAIRequest.Message("system", "You are an IELTS examiner.", null),
+                new OpenAIRequest.Message("user", buildUserMessage(prompt, essayContent), null) // Pass null here
         ));
 
         HttpHeaders headers = new HttpHeaders();
@@ -70,6 +73,9 @@ public class ExternalEssayEvaluationService {
                     // Ghi log nội dung phần content
                     System.out.println("AI Content for Deserialization: " + content);
 
+                    // Strip code fences if present
+                    content = stripCodeFences(content);
+
                     // Deserialize chỉ phần content vào EssayFeedback
                     return objectMapper.readValue(content, EssayFeedback.class);
                 } else {
@@ -86,9 +92,54 @@ public class ExternalEssayEvaluationService {
             throw new RuntimeException("Error processing AI response: " + e.getMessage(), e);
         }
     }
+    private ResponseEntity<String> callOpenAI(OpenAIRequest requestPayload) throws JsonProcessingException {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setBearerAuth(apiKey);
+
+        HttpEntity<OpenAIRequest> entity = new HttpEntity<>(requestPayload, headers);
+
+        try {
+            ResponseEntity<String> response = restTemplate.postForEntity(apiUrl, entity, String.class);
+            return response;
+        } catch (HttpClientErrorException.BadRequest e) {
+            System.err.println("Bad Request Error: " + e.getResponseBodyAsString());
+            throw new RuntimeException("Bad Request: " + e.getResponseBodyAsString(), e);
+        } catch (Exception e) {
+            throw new RuntimeException("Error calling OpenAI: " + e.getMessage(), e);
+        }
+    }
+
+    public String evaluateCommonIssues(String prompt) throws JsonProcessingException {
+        // Tương tự evaluateEssay, nhưng prompt sẽ khác.
+        // requestPayload:
+        OpenAIRequest requestPayload = new OpenAIRequest();
+        requestPayload.setModel("gpt-4o-mini");
+        requestPayload.setMessages(Arrays.asList(
+                new OpenAIRequest.Message("system", "You are an English grammar expert.", null),
+                new OpenAIRequest.Message("user", prompt, null)
+        ));
+
+        // Gửi request và parse kết quả
+        // Lấy code trong evaluateEssay rồi chỉnh sửa chỗ parse
+        ResponseEntity<String> response = callOpenAI(requestPayload);
+
+        if (response.getStatusCode() == HttpStatus.OK) {
+            OpenAIResponse openAIResponse = objectMapper.readValue(response.getBody(), OpenAIResponse.class);
+            if (openAIResponse.getChoices() != null && !openAIResponse.getChoices().isEmpty()) {
+                String content = openAIResponse.getChoices().get(0).getMessage().getContent();
+                content = stripCodeFences(content);
+                return content; // content chính là JSON issues
+            } else {
+                throw new RuntimeException("No choices found in AI response.");
+            }
+        } else {
+            throw new RuntimeException("Failed to get response from AI.");
+        }
+    }
 
     private String buildUserMessage(String prompt, String essayContent) {
-        return "Please evaluate the following essay focusing on grammatical and vocabulary errors. Provide the feedback strictly in JSON format with the following structure:\n" +
+        return "Please evaluate the following essay focusing on grammatical and vocabulary errors and show how to elevate it to higher by recommend a band 7 to 8 sentence. Provide the feedback strictly in JSON format with the following structure:\n" +
                 "{\n" +
                 "  \"grammarErrors\": [\n" +
                 "    {\n" +
@@ -108,7 +159,30 @@ public class ExternalEssayEvaluationService {
                 "  \"overallScore\": 6\n" +
                 "}\n\n" +
                 "**Prompt:**\n" + prompt + "\n\n" +
-                "**Essay:**\n" + essayContent;
+                "**Essay:**\n" + essayContent + "\n\n" +
+                "Please respond ONLY with the JSON object as specified above. Do not include any Markdown formatting, code fences, or additional text.";
+    }
+
+    /**
+     * Strips Markdown code fences (```json and ```) from the AI response content.
+     *
+     * @param content The raw content from the AI response.
+     * @return The cleaned JSON string.
+     */
+    private String stripCodeFences(String content) {
+        if (content.startsWith("```")) {
+            // Remove the first line (e.g., ```json)
+            int firstNewline = content.indexOf("\n");
+            if (firstNewline != -1) {
+                content = content.substring(firstNewline + 1);
+            }
+
+            // Remove the last three backticks
+            if (content.endsWith("```")) {
+                content = content.substring(0, content.length() - 3);
+            }
+        }
+        return content.trim();
     }
 
     public double calculateScore(String feedback) {

@@ -28,14 +28,11 @@ function SpeakingTopics() {
         try {
             const res = await dataApi.getAllSpeakingTopics();
             setTopics(res);
-
-            // Initialize refs for each topic to enable smooth scrolling
             const refs = {};
             res.forEach((topic) => {
                 refs[topic.id] = React.createRef();
             });
             topicRefs.current = refs;
-
             // Fetch questions for all topics in parallel to improve performance
             const questionsPromises = res.map((topic) => fetchQuestions(topic.id));
             const questionsResults = await Promise.all(questionsPromises);
@@ -57,7 +54,8 @@ function SpeakingTopics() {
     const fetchQuestions = async (topicId) => {
         try {
             const res = await dataApi.getAllQuestionsByTopic(topicId);
-            return res;
+            console.log(res)
+            return res.content;
         } catch (error) {
             toast.error(`Không thể tải các câu hỏi cho chủ đề này.`);
             return [];

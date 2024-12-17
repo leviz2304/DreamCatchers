@@ -1,700 +1,306 @@
-// EditCourse.jsx
-import React, { useEffect, useState } from "react";
-import {
-  TextField,
-  Button,
-  IconButton,
-  Typography,
+// // src/pages/admin/Course/EditCourse.js
 
-  FormHelperText,
-} from "@mui/material";
-import {
-  Close as CloseIcon,
-  Upload as UploadIcon,
-  Delete as DeleteIcon,
-} from "@mui/icons-material";
-import Select from "react-select";
-import makeAnimated from "react-select/animated";
-import { useParams } from "react-router-dom";
-import { toast } from "sonner";
-import * as DataApi from "../../../../api/apiService/dataService";
-import validateForm from "../../../../component/validation";
+// import React, { useState, useEffect } from 'react';
+// import UploadMedia from '../../../../component/Media/UploadMedia';
+// import { getCourseById, updateCourse } from '../../../../api/apiService/dataService';
+// import { toast } from 'sonner'; // Hoặc bất kỳ thư viện thông báo nào bạn đang dùng
+// import { useNavigate, useParams } from 'react-router-dom';
+// import {
+//     Container,
+//     Typography,
+//     TextField,
+//     Button,
+//     IconButton,
+//     Grid,
+//     Paper,
+//     Box,
+// } from '@mui/material';
+// import { AddCircle, RemoveCircle } from '@mui/icons-material';
 
-const animatedComponents = makeAnimated();
+// const EditCourse = () => {
+//     const { id } = useParams();
+//     const navigate = useNavigate();
+//     const [media, setMedia] = useState({ videoUrl: '', thumbnailUrl: '' });
+//     const [courseData, setCourseData] = useState({
+//         title: '',
+//         description: '',
+//         tutorId: '',
+//         categoryIds: '',
+//         sections: []
+//     });
 
-const initFormData = {
-  id: "",
-  title: "",
-  description: "",
-  price: "",
-  thumbnail: "",
-  video: "",
-  date: "",
-  sections: [],
-  categories: [],
-};
+//     useEffect(() => {
+//         fetchCourse();
+//     }, [id]);
 
-function EditCourse() {
-  const [formData, setFormData] = useState(initFormData);
-  const [options, setOptions] = useState([]);
-  const [errors, setErrors] = useState({});
-  const [isLoading, setIsLoading] = useState(false);
-  const { id } = useParams();
+//     const fetchCourse = async () => {
+//         try {
+//             const data = await getCourseById(id);
+//             const { title, description, tutorId, categoryIds, thumbnailUrl, videoPreviewUrl, sections } = data.content;
+//             setCourseData({
+//                 title,
+//                 description,
+//                 tutorId: tutorId.toString(),
+//                 categoryIds: [...categoryIds].join(', '),
+//                 sections: sections.map(section => ({
+//                     name: section.name,
+//                     lessons: section.lessons.map(lesson => ({
+//                         name: lesson.name,
+//                         videoUrl: lesson.videoUrl
+//                     }))
+//                 }))
+//             });
+//             setMedia({ videoUrl: videoPreviewUrl, thumbnailUrl: thumbnailUrl });
+//         } catch (error) {
+//             console.error("Failed to fetch course:", error);
+//             toast.error("Failed to fetch course.");
+//         }
+//     };
 
-  let timerId;
+//     const handleMediaUpload = (uploadedMedia) => {
+//         setMedia(uploadedMedia);
+//     };
 
-  //! NOTE: ============================ HANDLE FUNCTIONS ===================================
+//     const addSection = () => {
+//         setCourseData({
+//             ...courseData,
+//             sections: [...courseData.sections, { name: '', lessons: [{ name: '', videoUrl: '' }] }]
+//         });
+//     };
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-    setErrors((prev) => ({ ...prev, [name]: "" }));
-  };
+//     const removeSection = (index) => {
+//         const newSections = courseData.sections.filter((_, i) => i !== index);
+//         setCourseData({ ...courseData, sections: newSections });
+//     };
 
-  const handleFileChange = (e, lessonIndex, sectionIndex) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    setIsLoading(true);
-    toast.promise(DataApi.uploadImg(file), {
-      loading: "Uploading file...",
-      success: (result) => {
-        setIsLoading(false);
-        if (file.type === "video/mp4") {
-          const updatedSections = [...formData.sections];
-          const updatedLessons = [...updatedSections[sectionIndex].lessons];
-          updatedLessons[lessonIndex] = {
-            ...updatedLessons[lessonIndex],
-            video: result.content,
-          };
-          updatedSections[sectionIndex].lessons = updatedLessons;
-          setFormData({
-            ...formData,
-            sections: updatedSections,
-          });
-        } else {
-          setFormData({
-            ...formData,
-            thumbnail: result.content,
-          });
-        }
-        return "File uploaded successfully!";
-      },
-      error: (error) => {
-        console.error(error);
-        setIsLoading(false);
-        return "File upload failed.";
-      },
-    });
-    e.target.value = "";
-    setErrors((prev) => ({ ...prev, [e.target.name]: "" }));
-  };
+//     const addLesson = (sectionIndex) => {
+//         const newSections = [...courseData.sections];
+//         newSections[sectionIndex].lessons.push({ name: '', videoUrl: '' });
+//         setCourseData({ ...courseData, sections: newSections });
+//     };
 
-  const handleUpdateVideoCourse = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    setIsLoading(true);
-    toast.promise(DataApi.uploadImg(file), {
-      loading: "Uploading video...",
-      success: (result) => {
-        setIsLoading(false);
-        setFormData((prev) => ({
-          ...prev,
-          video: result.content,
-        }));
-        return "Video uploaded successfully!";
-      },
-      error: (error) => {
-        console.error(error);
-        setIsLoading(false);
-        return "Video upload failed.";
-      },
-    });
-    e.target.value = "";
-  };
+//     const removeLesson = (sectionIndex, lessonIndex) => {
+//         const newSections = [...courseData.sections];
+//         newSections[sectionIndex].lessons = newSections[sectionIndex].lessons.filter((_, i) => i !== lessonIndex);
+//         setCourseData({ ...courseData, sections: newSections });
+//     };
 
-  const handleSelectChange = (selectedOptions) => {
-    setFormData((prev) => ({
-      ...prev,
-      categories: selectedOptions,
-      isEditedCategories: 1,
-    }));
-    setErrors((prev) => ({ ...prev, categories: "" }));
-  };
+//     const handleCourseChange = (e) => {
+//         const { name, value } = e.target;
+//         setCourseData({ ...courseData, [name]: value });
+//     };
 
-  const handleRemoveItemPreview = (type, lessonIndex, sectionIndex) => {
-    if (type === "video") {
-      const updatedSections = [...formData.sections];
-      const updatedLessons = [...updatedSections[sectionIndex].lessons];
-      updatedLessons[lessonIndex] = {
-        ...updatedLessons[lessonIndex],
-        video: "",
-      };
-      updatedSections[sectionIndex].lessons = updatedLessons;
-      setFormData({
-        ...formData,
-        sections: updatedSections,
-      });
-    } else if (type === "thumbnail") {
-      setFormData((prev) => ({
-        ...prev,
-        thumbnail: "",
-      }));
-    }
-  };
+//     const handleSectionChange = (sectionIndex, e) => {
+//         const { name, value } = e.target;
+//         const newSections = [...courseData.sections];
+//         newSections[sectionIndex][name] = value;
+//         setCourseData({ ...courseData, sections: newSections });
+//     };
 
-  const handleAddLesson = (sectionIndex) => {
-    const newLesson = {
-      title: "",
-      description: "",
-      video: "",
-      linkVideo: "",
-    };
-    const updatedSections = [...formData.sections];
-    updatedSections[sectionIndex].lessons.push(newLesson);
-    setFormData({
-      ...formData,
-      sections: updatedSections,
-    });
-  };
+//     const handleLessonChange = (sectionIndex, lessonIndex, e) => {
+//         const { name, value } = e.target;
+//         const newSections = [...courseData.sections];
+//         newSections[sectionIndex].lessons[lessonIndex][name] = value;
+//         setCourseData({ ...courseData, sections: newSections });
+//     };
 
-  const handleInputLessonChange = (e, lessonIndex, sectionIndex) => {
-    const { name, value } = e.target;
-    const updatedSections = [...formData.sections];
-    updatedSections[sectionIndex].lessons[lessonIndex] = {
-      ...updatedSections[sectionIndex].lessons[lessonIndex],
-      [name]: value,
-      isEdited: 1,
-    };
-    setFormData({
-      ...formData,
-      sections: updatedSections,
-    });
-    setErrors((prev) => ({
-      ...prev,
-      [`lesson-${sectionIndex}-${lessonIndex}-${name}`]: "",
-    }));
-  };
+//     const handleSubmit = async (e) => {
+//         e.preventDefault();
 
-  const handleCreateSection = () => {
-    const newSection = {
-      title: "",
-      lessons: [],
-    };
-    setFormData((prev) => ({
-      ...prev,
-      sections: [...prev.sections, newSection],
-    }));
-  };
+//         // Validate media upload
+//         if (!media.videoUrl || !media.thumbnailUrl) {
+//             toast.error("Vui lòng upload video và thumbnail trước khi cập nhật khóa học.");
+//             return;
+//         }
 
-  const handleInputSectionChange = (e, sectionIndex) => {
-    const { value } = e.target;
-    const updatedSections = [...formData.sections];
-    updatedSections[sectionIndex].title = value;
-    updatedSections[sectionIndex].isEdited = 1;
-    setFormData({
-      ...formData,
-      sections: updatedSections,
-    });
-    setErrors((prev) => ({ ...prev, [`section-${sectionIndex}`]: "" }));
-  };
+//         // Validate course data
+//         if (!courseData.title || !courseData.description || !courseData.tutorId || !courseData.categoryIds) {
+//             toast.error("Vui lòng điền đầy đủ thông tin khóa học.");
+//             return;
+//         }
 
-  const handleRemoveSection = (sectionIndex) => {
-    const updatedSections = [...formData.sections];
-    updatedSections.splice(sectionIndex, 1);
-    setFormData({
-      ...formData,
-      sections: updatedSections,
-    });
-  };
+//         // Convert categoryIds từ chuỗi sang mảng số
+//         const categoryIdsArray = courseData.categoryIds.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id));
 
-  const handleRemoveLesson = (lessonIndex, sectionIndex) => {
-    const updatedSections = [...formData.sections];
-    updatedSections[sectionIndex].lessons.splice(lessonIndex, 1);
-    setFormData({
-      ...formData,
-      sections: updatedSections,
-    });
-  };
+//         // Prepare CourseDTO
+//         const courseDTO = {
+//             title: courseData.title,
+//             description: courseData.description,
+//             thumbnailUrl: media.thumbnailUrl,
+//             videoPreviewUrl: media.videoUrl,
+//             tutorId: parseInt(courseData.tutorId),
+//             categoryIds: new Set(categoryIdsArray),
+//             sections: courseData.sections.map(section => ({
+//                 name: section.name,
+//                 lessons: section.lessons.map(lesson => ({
+//                     name: lesson.name,
+//                     videoUrl: lesson.videoUrl
+//                 }))
+//             }))
+//         };
 
-  const handleRemoveVideoCourse = () => {
-    setFormData((prev) => ({
-      ...prev,
-      video: "",
-    }));
-  };
+//         try {
+//             const response = await updateCourse(id, courseDTO);
+//             toast.success("Cập nhật khóa học thành công!");
+//             // Chuyển hướng đến danh sách khóa học
+//             navigate('/admin/courses');
+//         } catch (error) {
+//             console.error("Error updating course:", error);
+//             toast.error("Cập nhật khóa học thất bại!");
+//         }
+//     };
 
-  //! NOTE: ======================== SUBMIT FUNCTION ========================
+//     return (
+//         <Container maxWidth="lg">
+//             <Typography variant="h4" gutterBottom>
+//                 Edit Course
+//             </Typography>
+//             <Paper sx={{ p: 3 }}>
+//                 <form onSubmit={handleSubmit}>
+//                     <UploadMedia onUploadComplete={handleMediaUpload} existingMedia={media} />
+//                     <Grid container spacing={2} sx={{ mt: 2 }}>
+//                         <Grid item xs={12}>
+//                             <TextField
+//                                 label="Title"
+//                                 name="title"
+//                                 value={courseData.title}
+//                                 onChange={handleCourseChange}
+//                                 fullWidth
+//                                 required
+//                             />
+//                         </Grid>
+//                         <Grid item xs={12}>
+//                             <TextField
+//                                 label="Description"
+//                                 name="description"
+//                                 value={courseData.description}
+//                                 onChange={handleCourseChange}
+//                                 fullWidth
+//                                 multiline
+//                                 rows={4}
+//                                 required
+//                             />
+//                         </Grid>
+//                         <Grid item xs={12} sm={6}>
+//                             <TextField
+//                                 label="Tutor ID"
+//                                 name="tutorId"
+//                                 type="number"
+//                                 value={courseData.tutorId}
+//                                 onChange={handleCourseChange}
+//                                 fullWidth
+//                                 required
+//                             />
+//                         </Grid>
+//                         <Grid item xs={12} sm={6}>
+//                             <TextField
+//                                 label="Category IDs (comma separated)"
+//                                 name="categoryIds"
+//                                 value={courseData.categoryIds}
+//                                 onChange={handleCourseChange}
+//                                 fullWidth
+//                                 required
+//                                 helperText="Ví dụ: 1,2,3"
+//                             />
+//                         </Grid>
+//                     </Grid>
+//                     <Box sx={{ mt: 4 }}>
+//                         <Typography variant="h5">Sections</Typography>
+//                         {courseData.sections.map((section, sectionIndex) => (
+//                             <Paper key={sectionIndex} sx={{ p: 2, mt: 2, position: 'relative' }}>
+//                                 <IconButton
+//                                     color="error"
+//                                     onClick={() => removeSection(sectionIndex)}
+//                                     sx={{ position: 'absolute', top: 10, right: 10 }}
+//                                 >
+//                                     <RemoveCircle />
+//                                 </IconButton>
+//                                 <Grid container spacing={2}>
+//                                     <Grid item xs={12}>
+//                                         <TextField
+//                                             label={`Section ${sectionIndex + 1} Name`}
+//                                             name="name"
+//                                             value={section.name}
+//                                             onChange={e => handleSectionChange(sectionIndex, e)}
+//                                             fullWidth
+//                                             required
+//                                         />
+//                                     </Grid>
+//                                     <Grid item xs={12}>
+//                                         <Typography variant="subtitle1">Lessons</Typography>
+//                                         {section.lessons.map((lesson, lessonIndex) => (
+//                                             <Paper key={lessonIndex} sx={{ p: 2, mt: 1, position: 'relative' }}>
+//                                                 <IconButton
+//                                                     color="error"
+//                                                     onClick={() => removeLesson(sectionIndex, lessonIndex)}
+//                                                     sx={{ position: 'absolute', top: 10, right: 10 }}
+//                                                 >
+//                                                     <RemoveCircle />
+//                                                 </IconButton>
+//                                                 <Grid container spacing={2}>
+//                                                     <Grid item xs={12} sm={6}>
+//                                                         <TextField
+//                                                             label={`Lesson ${lessonIndex + 1} Name`}
+//                                                             name="name"
+//                                                             value={lesson.name}
+//                                                             onChange={e => handleLessonChange(sectionIndex, lessonIndex, e)}
+//                                                             fullWidth
+//                                                             required
+//                                                         />
+//                                                     </Grid>
+//                                                     <Grid item xs={12} sm={6}>
+//                                                         <TextField
+//                                                             label={`Lesson ${lessonIndex + 1} Video URL`}
+//                                                             name="videoUrl"
+//                                                             value={lesson.videoUrl}
+//                                                             onChange={e => handleLessonChange(sectionIndex, lessonIndex, e)}
+//                                                             fullWidth
+//                                                         />
+//                                                         {lesson.videoUrl && (
+//                                                             <Box sx={{ mt: 1 }}>
+//                                                                 <video width="240" height="180" controls>
+//                                                                     <source src={lesson.videoUrl} type="video/mp4" />
+//                                                                     Your browser does not support the video tag.
+//                                                                 </video>
+//                                                             </Box>
+//                                                         )}
+//                                                     </Grid>
+//                                                 </Grid>
+//                                             </Paper>
+//                                         ))}
+//                                         <Button
+//                                             variant="outlined"
+//                                             startIcon={<AddCircle />}
+//                                             onClick={() => addLesson(sectionIndex)}
+//                                             sx={{ mt: 1 }}
+//                                         >
+//                                             Add Lesson
+//                                         </Button>
+//                                     </Grid>
+//                                 </Grid>
+//                             </Paper>
+//                         ))}
+//                         <Button
+//                             variant="outlined"
+//                             startIcon={<AddCircle />}
+//                             onClick={addSection}
+//                             sx={{ mt: 2 }}
+//                         >
+//                             Add Section
+//                         </Button>
+//                     </Box>
+//                     <Button
+//                         type="submit"
+//                         variant="contained"
+//                         color="primary"
+//                         sx={{ mt: 4 }}
+//                     >
+//                         Update Course
+//                     </Button>
+//                 </form>
+//             </Paper>
+//         </Container>
+//     );
+// };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (isLoading) {
-      toast.error("Please wait for the file to finish uploading.");
-      return;
-    }
-    const validationErrors = validateForm(formData);
-    setErrors(validationErrors);
-
-    if (Object.keys(validationErrors).length > 0) {
-      toast.error("Please fill in all required fields.");
-      return;
-    }
-
-    const fetchApi = async () => {
-      try {
-        const newCategories = formData.categories.map((cate) => cate.id);
-        const updatedCourse = {
-          ...formData,
-          categories: newCategories,
-        };
-        await toast.promise(DataApi.updateCourse(id, updatedCourse), {
-          loading: "Updating course...",
-          success: "Course updated successfully!",
-          error: "Failed to update course.",
-        });
-      } catch (error) {
-        console.error("Error updating course:", error);
-        toast.error("Failed to update course. Please try again.");
-      }
-    };
-
-    const debounceApi = debounce(fetchApi, 600);
-    debounceApi();
-  };
-
-  const debounce = (func, delay = 600) => {
-    return () => {
-      clearTimeout(timerId);
-      timerId = setTimeout(() => {
-        func();
-      }, delay);
-    };
-  };
-
-  //! NOTE: =========================== FETCH DATA ====================================
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const categoriesResult = await DataApi.getAllCategories();
-        setOptions(categoriesResult.content.content);
-        const courseResult = await DataApi.getCourseById(id);
-        setFormData(courseResult.content);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-        toast.error("Failed to fetch course data.");
-      }
-    };
-    fetchData();
-  }, [id]);
-
-  //! NOTE: =========================== RENDER COMPONENT =============================
-
-  return (
-    <div className="flex justify-center w-full p-4">
-      <div className="w-full max-w-5xl">
-        <h3 className="text-2xl font-semibold mb-6 text-center">Edit Course</h3>
-        <form onSubmit={handleSubmit}>
-          <div className="space-y-6">
-            {/* Course Title */}
-            <div>
-              <TextField
-                fullWidth
-                label="Course Name"
-                name="title"
-                value={formData.title}
-                onChange={handleInputChange}
-                error={!!errors.title}
-                helperText={errors.title}
-                required
-              />
-            </div>
-
-            {/* Description */}
-            <div>
-              <TextField
-                fullWidth
-                label="Description"
-                name="description"
-                value={formData.description}
-                onChange={handleInputChange}
-                error={!!errors.description}
-                helperText={errors.description}
-                required
-                multiline
-                rows={4}
-              />
-            </div>
-
-            {/* Categories and Price */}
-            <div className="flex flex-col md:flex-row md:space-x-6 space-y-6 md:space-y-0">
-              {/* Categories */}
-              <div className="flex-1">
-                <label className="block mb-2 font-medium text-gray-700">
-                  Categories
-                </label>
-                <Select
-                  isMulti
-                  components={animatedComponents}
-                  value={formData.categories}
-                  onChange={handleSelectChange}
-                  options={options}
-                  getOptionLabel={(option) => option.name}
-                  getOptionValue={(option) => option.id}
-                  className="react-select-container"
-                  classNamePrefix="react-select"
-                  placeholder="Select Categories"
-                />
-                {errors.categories && (
-                  <FormHelperText error>{errors.categories}</FormHelperText>
-                )}
-              </div>
-
-              {/* Price */}
-              <div className="flex-1">
-                <TextField
-                  fullWidth
-                  label="Price"
-                  name="price"
-                  type="number"
-                  value={formData.price}
-                  onChange={handleInputChange}
-                  error={!!errors.price}
-                  helperText={errors.price}
-                  required
-                  inputProps={{ min: 0 }}
-                />
-              </div>
-            </div>
-
-            {/* Thumbnail */}
-            <div className="flex flex-col md:flex-row md:space-x-6 space-y-6 md:space-y-0">
-              {/* Upload Thumbnail */}
-              <div className="flex-1">
-                <label className="block mb-2 font-medium text-gray-700">
-                  Thumbnail
-                </label>
-                <Button
-                  variant="outlined"
-                  component="label"
-                  startIcon={<UploadIcon />}
-                  fullWidth
-                  className="h-16"
-                >
-                  Upload Thumbnail
-                  <input
-                    type="file"
-                    accept=".jpg,.jpeg,.png"
-                    hidden
-                    onChange={(e) => handleFileChange(e)}
-                    name="thumbnail"
-                  />
-                </Button>
-                {errors.thumbnail && (
-                  <FormHelperText error>{errors.thumbnail}</FormHelperText>
-                )}
-              </div>
-
-              {/* Thumbnail Preview */}
-              {formData.thumbnail && (
-                <div className="flex-1 flex items-center justify-center w-full h-ful">
-                  <div className="relative w-full h-full">
-                  <IconButton
-                      size="small"
-                      className="absolute top-0 right-0 bg-white bg-opacity-75 hover:bg-opacity-100"
-                      onClick={() => handleRemoveItemPreview("thumbnail")}
-                    >
-                      <CloseIcon fontSize="small" />
-                    </IconButton>
-                    <img
-                      src={formData.thumbnail}
-                      alt="Thumbnail Preview"
-                      className="object-cover w-full h-full rounded"
-                    />
-                   
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Video */}
-            <div className="flex flex-col md:flex-row md:space-x-6 space-y-6 md:space-y-0">
-              {/* Upload Video */}
-              <div className="flex-1">
-                <label className="block mb-2 font-medium text-gray-700">
-                  Video
-                </label>
-                <Button
-                  variant="outlined"
-                  component="label"
-                  startIcon={<UploadIcon />}
-                  fullWidth
-                  className="h-16"
-                >
-                  Upload Video
-                  <input
-                    type="file"
-                    accept=".mp4"
-                    hidden
-                    onChange={handleUpdateVideoCourse}
-                    name="video"
-                  />
-                </Button>
-              </div>
-
-              {/* Video Preview */}
-              {formData.video && (
-                <div className="flex-1 flex items-center justify-center">
-                  <div className="relative w-full h-full">
-                  <IconButton
-                      size="small"
-                      className="absolute top-0 right-0 bg-white bg-opacity-75 hover:bg-opacity-100"
-                      onClick={handleRemoveVideoCourse}
-                    >
-                      <CloseIcon fontSize="small" />
-                    </IconButton>
-                    <video
-                      src={formData.video}
-                      controls
-                      className="object-cover w-full h-full rounded"
-                    />
-                   
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Curriculum */}
-            <div className="space-y-6 mt-5">
-              <div>
-                <Typography variant="h5" className="text-center mb-4">
-                  Curriculum
-                </Typography>
-                {formData.sections.map((section, sectionIndex) => (
-                  <div
-                    key={sectionIndex}
-                    className="p-4 border rounded-lg shadow-md space-y-4"
-                  >
-                    {/* Section Header */}
-                    <div className="flex items-center justify-between">
-                      <Typography variant="h6">
-                        Section {sectionIndex + 1}
-                      </Typography>
-                      <Button
-                        variant="contained"
-                        color="error"
-                        startIcon={<DeleteIcon />}
-                        onClick={() => handleRemoveSection(sectionIndex)}
-                      >
-                        Remove Section
-                      </Button>
-                    </div>
-
-                    {/* Section Name */}
-                    <div>
-                      <TextField
-                        fullWidth
-                        label="Section Name"
-                        name="title"
-                        value={section.title}
-                        onChange={(e) =>
-                          handleInputSectionChange(e, sectionIndex)
-                        }
-                        error={!!errors[`section-${sectionIndex}`]}
-                        helperText={errors[`section-${sectionIndex}`]}
-                        required
-                      />
-                    </div>
-
-                    {/* Lessons */}
-                    <div className="space-y-4">
-                      {section.lessons.map((lesson, lessonIndex) => (
-                        <div
-                          key={lessonIndex}
-                          className="p-4 border rounded-lg shadow-sm space-y-4"
-                        >
-                          {/* Lesson Header */}
-                          <div className="flex items-center justify-between">
-                            <Typography variant="subtitle1">
-                              Lesson {lessonIndex + 1}
-                            </Typography>
-                            <Button
-                              variant="contained"
-                              color="error"
-                              startIcon={<DeleteIcon />}
-                              onClick={() =>
-                                handleRemoveLesson(lessonIndex, sectionIndex)
-                              }
-                            >
-                              Remove Lesson
-                            </Button>
-                          </div>
-
-                          {/* Lesson Name */}
-                          <div>
-                            <TextField
-                              fullWidth
-                              label="Lesson Name"
-                              name="title"
-                              value={lesson.title}
-                              onChange={(e) =>
-                                handleInputLessonChange(
-                                  e,
-                                  lessonIndex,
-                                  sectionIndex
-                                )
-                              }
-                              error={
-                                !!errors[
-                                  `lesson-title-${sectionIndex}-${lessonIndex}`
-                                ]
-                              }
-                              helperText={
-                                errors[
-                                  `lesson-title-${sectionIndex}-${lessonIndex}`
-                                ]
-                              }
-                              required
-                            />
-                          </div>
-
-                          {/* Lesson Description */}
-                          <div>
-                            <TextField
-                              fullWidth
-                              label="Description"
-                              name="description"
-                              value={lesson.description}
-                              onChange={(e) =>
-                                handleInputLessonChange(
-                                  e,
-                                  lessonIndex,
-                                  sectionIndex
-                                )
-                              }
-                              error={
-                                !!errors[
-                                  `lesson-description-${sectionIndex}-${lessonIndex}`
-                                ]
-                              }
-                              helperText={
-                                errors[
-                                  `lesson-description-${sectionIndex}-${lessonIndex}`
-                                ]
-                              }
-                              required
-                              multiline
-                              rows={3}
-                            />
-                          </div>
-
-                          {/* Lesson Video */}
-                          <div className="flex flex-col md:flex-row md:space-x-6 space-y-6 md:space-y-0">
-                            {/* Upload Lesson Video */}
-                            <div className="flex-1">
-                              <label className="block mb-2 font-medium text-gray-700">
-                                Video
-                              </label>
-                              <Button
-                                variant="outlined"
-                                component="label"
-                                startIcon={<UploadIcon />}
-                                fullWidth
-                                className="h-16"
-                              >
-                                Upload Video
-                                <input
-                                  type="file"
-                                  accept=".mp4"
-                                  hidden
-                                  onChange={(e) =>
-                                    handleFileChange(e, lessonIndex, sectionIndex)
-                                  }
-                                  name="video"
-                                />
-                              </Button>
-                            </div>
-
-                            {/* Lesson Video Preview */}
-                            {lesson.video && (
-                              <div className="flex-1 flex items-center justify-center">
-                                <div className="relative w-full h-full">
-                                <IconButton
-                                    size="small"
-                                    className="absolute top-0 right-0 bg-white bg-opacity-75 hover:bg-opacity-100"
-                                    onClick={() =>
-                                      handleRemoveItemPreview(
-                                        "video",
-                                        lessonIndex,
-                                        sectionIndex
-                                      )
-                                    }
-                                  >
-                                    <CloseIcon fontSize="small" />
-                                  </IconButton>
-                                  <video
-                                    src={lesson.video}
-                                    controls
-                                    className="object-cover w-full h-full rounded"
-                                  />
-                                 
-                                </div>
-                              </div>
-                            )}
-                          </div>
-
-                          {/* Link Video */}
-                        
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* Add Lesson Button */}
-                    <div>
-                      <Button
-                        variant="outlined"
-                        startIcon={<UploadIcon />}
-                        onClick={() => handleAddLesson(sectionIndex)}
-                      >
-                        Add Lesson
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-
-                {/* Add Section Button */}
-                <div className="mt-2">
-                  <Button
-                    variant="contained"
-                    startIcon={<UploadIcon />}
-                    onClick={handleCreateSection}
-                  >
-                    Add Section
-                  </Button>
-                </div>
-              </div>
-            </div>
-
-            {/* Submit Button */}
-            <div className="flex justify-center">
-              <Button
-                variant="contained"
-                color="primary"
-                type="submit"
-                size="large"
-                disabled={isLoading}
-                className="w-1/3"
-              >
-                Update Course
-              </Button>
-            </div>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-}
-
-export default EditCourse;
+// export default EditCourse;

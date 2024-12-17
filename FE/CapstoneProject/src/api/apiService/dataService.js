@@ -89,50 +89,14 @@ export const getAllCategoryDeleted = async (page, size) => {
     }
 };
 
-export const createCourse = async (course) => {
-    const formData = new FormData();
-    const json = JSON.stringify(course);
-    const courseBlob = new Blob([json], {
-        type: "application/json",
-    });
-    formData.append("course", courseBlob);
-    try {
-        const response = await privateInstance.postForm(
-            "/course/create",
-            formData
-        );
-        return response;
-    } catch (error) {
-        return Promise.reject(error);
-    }
-};
 
-export const updateCourse = async (id, course) => {
-    console.table(course);
-    const formData = new FormData();
-    const json = JSON.stringify(course);
-    const courseBlob = new Blob([json], {
-        type: "application/json",
-    });
-
-    formData.append("course", courseBlob);
-    try {
-        const result = await privateInstance.putForm(
-            `/course/edit/${id}`,
-            formData
-        );
-        return result;
-    } catch (error) {
-        return Promise.reject(error);
-    }
-};
 
 export const getRecentComments = async (limit = 2) => {
     const response = await privateInstance.get(`/dashboard/comments?limit=${limit}`);
     return response;
 };
 export const getAdminStatistics = async () => {
-    return await privateInstance.get("/dashboard/stats"); // Gọi API từ backend
+    return await privateInstance.get("/dashboard/stats");
 };
 export const getAdminEssayStatistics = async () => {
     const response = await privateInstance.get(`/dashboard/essays/statistics`);
@@ -142,49 +106,6 @@ export const getAdminEssayStatistics = async () => {
 export const getAllEssays = async () => {
     const response = await privateInstance.get(`/dashboard/essays`);
     return response;
-};
-export const getAllCourse = async (page = 0, size = 99) => {
-    try {
-        const result = await publicInstance.get(
-            `/course/getAll?page=${page}&size=${size}`
-        );
-        console.log("Heasdsadllo:"+result);
-
-        return result;
-
-    } catch (error) {
-        return Promise.reject(error);
-    }
-};
-
-export const getAllCourseAdmin = async (page = 0, size = 5) => {
-    try {
-        const result = await privateInstance.get(
-            `/course/getAll?page=${page}&size=${size}`
-        );
-        return result;
-    } catch (error) {
-        return Promise.reject(error);
-    }
-};
-export const getAllCourseDeleted = async (page, size) => {
-    try {
-        const result = await privateInstance.get(
-            `/course/getAllDeleted?page=${page}&size=${size}`
-        );
-        return result;
-    } catch (error) {
-        console.log(error);
-        return Promise.reject(error);
-    }
-};
-export const enrollInCourse = async (enrollData) => {
-    try {
-        const response = await privateInstance.post(`/course/enroll`, enrollData);
-  return response.data; // Handle the response as needed
-    } catch (error) {
-        return Promise.reject(error);
-    }
 };
 // src/api/apiService.js
 export const generateVocabularySet = async (topic, quantity, level) => {
@@ -244,9 +165,37 @@ export const deleteSpeakingTopic = async (id) => {
 export const getAllSpeakingTopics = async () => {
     try {
         const response = await privateInstance.get("/speaking/topics");
-        return response;
+        return response.content;
     } catch (error) {
         return Promise.reject(error.response.data);
+    }
+};
+// Trong apiService.js (File DataService.js bạn đang dùng)
+export const getInstructorByCourseId = async (courseId) => {
+    try {
+        // Vì endpoint ở BE là /api/v1/public/course/{courseId}/instructor (public endpoint)
+        const response = await publicInstance.get(`/course/${courseId}/instructor`);
+        return response; // response đã được interceptors xử lý, trả về dữ liệu JSON
+    } catch (error) {
+        return Promise.reject(error);
+    }
+};
+
+export const getEssayHistory = async (page = 0, size = 10,userId) => {
+    try {
+        const response = await privateInstance.get(`/writing/essays/history?${userId}&page=${page}&size=${size}`);
+        return response.content; // Assuming the backend returns a paginated response
+    } catch (error) {
+        throw error.response ? error.response.data : new Error('Network Error');
+    }
+};
+
+export const getEssayById = async (essayId) => {
+    try {
+        const response = await privateInstance.get(`/writing/essays/${essayId}`);
+        return response.content; // Assuming the backend returns the essay in 'content'
+    } catch (error) {
+        throw error.response ? error.response.data : new Error('Network Error');
     }
 };
 
@@ -276,15 +225,200 @@ export const deleteSpeakingQuestion = async (id) => {
         return Promise.reject(error.response.data);
     }
 };
+// Get question by ID
+
+// Submit idea and get AI answer
 export const getQuestionById = async (id) => {
     try {
-        const response = await privateInstance.get(`/questions/${id}`);
-        return response; // Assuming the backend returns the SpeakingQuestion object in the response body
+        const response = await privateInstance.get(`/speaking/questions/${id}`);
+        return response.content;
     } catch (error) {
-        console.error("Error fetching question by ID:", error);
         return Promise.reject(error);
     }
 };
+// pronunciation check:
+export const uploadSentenceAudio = async (sentenceId, audioFile) => {
+    try {
+        const formData = new FormData();
+        formData.append("audioFile", audioFile);
+
+        const response = await privateInstance.post(`/pronunciation/sentences/${sentenceId}/upload-audio`, formData, {
+            headers: {
+                "Content-Type": "multipart/form-data",
+            },
+        });
+
+        return response; // Should return the updated SentenceDTO with audioUrl
+    } catch (error) {
+        console.error("Error uploading sentence audio:", error);
+        return Promise.reject(error.response.data);
+    }
+};
+export const getSentenceAudio = async (sentenceId) => {
+    try {
+        const response = await privateInstance.get(`/pronunciation/sentences/${sentenceId}/audio`);
+        return response.audioUrl;
+    } catch (error) {
+        console.error("Error fetching sentence audio:", error);
+        return Promise.reject(error.response.data);
+    }
+};
+// src/api/apiService/dataService.js
+export const getCommentsByCourseId = async (courseId) => {
+    try {
+        return await privateInstance.get(`/comments/course/${courseId}`);
+    } catch (error) {
+        return Promise.reject(error);
+    }
+};
+
+export const addComment = async (courseId, commentData) => {
+    try {
+        return await privateInstance.post(`/comments/course/${courseId}`, commentData);
+    } catch (error) {
+        return Promise.reject(error);
+    }
+};
+
+// Nếu bạn muốn tách biệt API cho lesson comments, bạn có thể thêm thêm hàm tương tự
+export const getCommentsByLessonId = async (lessonId) => {
+    try {
+        return await publicInstance.get(`/lesson/${lessonId}/comments`);
+    } catch (error) {
+        return Promise.reject(error);
+    }
+};
+// ... Các import hiện tại
+export const getSpeakingFeedbacks = async (userId) => {
+    const res = await privateInstance.get(`/speaking/feedbacks/${userId}`);
+    // res là mảng SpeakingFeedback
+    return res; 
+  };
+export const analyzePronunciation = async ({ file, userId, sentenceId }) => {
+    try {
+        const formData = new FormData();
+        formData.append("audioFile", file);
+        formData.append("userId", userId);
+        formData.append("sentenceId", sentenceId);
+
+        const response = await privateInstance.post("/pronunciation/assess", formData, {
+            headers: {
+                "Content-Type": "multipart/form-data",
+            },
+        });
+        return response;
+    } catch (error) {
+        console.error("Error analyzing pronunciation:", error);
+        // Extract and return a meaningful error message if available
+        if (error.response && error.response.data) {
+            return Promise.reject(error.response.data);
+        }
+        return Promise.reject(error);
+    }
+};
+
+
+export const createSentence = async (sentence) => {
+    try {
+        const response = await privateInstance.post("/pronunciation/sentences", sentence);
+        return response;
+    } catch (error) {
+        return Promise.reject(error);
+    }
+};
+export const getSentenceByTopicId = async (id) => {
+    try {
+        const response = await privateInstance.get(`/pronunciation/sentences?topicId=${id}`);
+        return response;
+    } catch (error) {
+        return Promise.reject(error);
+    }
+};
+
+export const getSentenceById = async (id) => {
+    try {
+        const response = await privateInstance.get(`/pronunciation/sentences/${id}`);
+        return response;
+    } catch (error) {
+        return Promise.reject(error);
+    }
+};
+
+export const updateSentence = async (id, sentence) => {
+    try {
+        const response = await privateInstance.put(`/pronunciation/sentences/${id}`, sentence);
+        return response;
+    } catch (error) {
+        return Promise.reject(error);
+    }
+};
+
+export const deleteSentence = async (id) => {
+    try {
+        await privateInstance.delete(`/pronunciation/sentences/${id}`);
+    } catch (error) {
+        return Promise.reject(error);
+    }
+};
+export const getPronunciationTopic = async () => {
+    try {
+        const response = await privateInstance.get("/pronunciation/topics");
+        return response;
+    } catch (error) {
+        return Promise.reject(error);
+    }
+};
+export const createPronunciationTopic = async (topic) => {
+    try {
+        const response = await privateInstance.post("/pronunciation/topics", topic);
+        return response;
+    } catch (error) {
+        return Promise.reject(error);
+    }
+};
+
+export const getPronunciationTopicById = async (id) => {
+    try {
+        const response = await privateInstance.get(`/pronunciation/topics/${id}`);
+        return response;
+    } catch (error) {
+        return Promise.reject(error);
+    }
+};
+
+export const updatePronunciationTopic = async (id, topic) => {
+    try {
+        const response = await privateInstance.put(`/pronunciation/topics/${id}`, topic);
+        return response;
+    } catch (error) {
+        return Promise.reject(error);
+    }
+};
+
+export const deleteTopic = async (id) => {
+    try {
+        await privateInstance.delete(`/pronunciation/topics/${id}`);
+    } catch (error) {
+        return Promise.reject(error);
+    }
+};
+// Gửi ý tưởng và nhận câu trả lời từ AI
+export const generateAnswer = async (userId, questionId, userInput) => {
+    try {
+      const payload = {
+        userId,
+        questionId,
+        userInput,
+      };
+      const response = await privateInstance.post(
+        `/speaking/generate-answer`,
+        payload
+      );
+      return response.content; // Trả về chuỗi văn bản
+    } catch (error) {
+      return Promise.reject(error);
+    }
+  };
 export const getAllQuestionsByTopic = async (topicId) => {
     try {
         const response = await privateInstance.get(`/speaking/topics/${topicId}/questions`);
@@ -293,7 +427,75 @@ export const getAllQuestionsByTopic = async (topicId) => {
         return Promise.reject(error.response.data);
     }
 };
+////IELTS
+export const getAllUserEssaysWithFeedback = async (userId) => {
+    const res = await privateInstance.get(`/report/my-report?userId=${userId}`);
+    return res; // Giả sử backend trả về ResponseObject {content: [...]}
+  };
+  
+  // Generate common issues
+  export const generateCommonIssues = async (userId) => {
+    const res = await privateInstance.post(`/report/generate-common-issues?userId=${userId}`);
+    return res; // Trả về CommonGrammarIssue object
+  };
+  
+  // Lấy common issues mới nhất
+  export const getLatestCommonIssues = async (userId) => {
+    const res = await privateInstance.get(`/report/common-issues/latest?userId=${userId}`);
+    return res; // JSON chứa "issues":[...]
+  };
 
+// Hàm upload video
+export const uploadVideoFile = async (file) => {
+  const formData = new FormData();
+  formData.append("file", file);
+  const res = await privateInstance.post("/media/upload-video", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  // Backend trả về ResponseObject {status, mess, content: {url, fileName}} 
+  return res.content.url; // res đã được interceptors xử lý hay chưa?
+  // Nếu interceptors đã xử lý, bạn có thể cần sửa:
+  // Kiểm tra kết quả: Có thể res là:
+  // {
+  //   status: "OK",
+  //   mess: "Video uploaded successfully",
+  //   content: { url: "...", fileName: "..." }
+  // }
+  // Trong trường hợp này:
+  return res.content.url;
+};
+
+// Hàm upload thumbnail
+export const uploadImageFile = async (file) => {
+  const formData = new FormData();
+  formData.append("file", file);
+  const res = await privateInstance.post("/media/upload-thumbnail", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  // Tương tự như trên:
+  return res.content.url;
+};
+
+export const createCourse = (courseDTO) => {
+    return privateInstance.post("/courses", courseDTO);
+  };
+  
+  export const getCourseById = (id) => {
+    return privateInstance.get(`/courses/${id}`);
+  };
+  
+  export const updateCourse = (id, courseDTO) => {
+    return privateInstance.put(`/courses/${id}`, courseDTO);
+  };
+  
+  export const deleteCourse = (id) => {
+    return privateInstance.delete(`/courses/${id}`);
+  };
+  
+  export const getCourses = () => {
+    return privateInstance.get(`/courses`);
+  };
+  
 // Submit Speaking Response
 export const submitSpeakingResponse = async (userId, questionId, audioBlob) => {
     try {
@@ -313,8 +515,42 @@ export const submitSpeakingResponse = async (userId, questionId, audioBlob) => {
         return Promise.reject(error.response.data);
     }
 };
-
-
+export const getLessonsStatus = async (courseId, userId) => {
+    const response = await privateInstance.get(`/course/${courseId}/lessons-status?userId=${userId}`);
+    return response; // response.data = [{lessonId, lessonName, unlocked}, ...]
+  };
+  
+  // Gọi API update progress
+  export const updateLessonProgress = async (userId, lessonId, progress, courseId) => {
+    const response = await privateInstance.post(
+      `/course/${courseId}/lesson/${lessonId}/progress`,
+      null,
+      {
+        params: {
+          userId,
+          progress
+        }
+      }
+    );
+    return response;
+  };
+export const enrollInCourse = async (courseId, userId) => {
+    try {
+        console.log("test"+userId)
+        const response = await privateInstance.post(`/courses/${courseId}/enroll/${userId}`);
+        return response;
+    } catch (error) {
+        throw error;
+    }
+};
+export const checkEnrollment = async (courseId, userId) => {
+    try {
+        const response = await privateInstance.get(`/courses/${courseId}/enrollment-status?userId=${userId}`);
+        return response; // { enrolled: true/false }
+    } catch (error) {
+        throw error;
+    }
+};
 // Retrieve User Feedbacks
 export const getUserSpeakingFeedbacks = async (userId) => {
     try {
@@ -350,28 +586,9 @@ export const getUserIdByEmail = async (email) => {
         return Promise.reject(error);
     }
 };
-export const updateLessonProgress = async (userId, lessonId, progressPercentage) => {
-    try {
-      return await userInstance.post(`/lesson/progress`, {
-        userId,
-        lessonId,
-        progressPercentage,
-      });
-    } catch (error) {
-      return Promise.reject(error);
-    }
-  };
-  
+
   // Get user progress for a course
   
-
-export const getCourseById = async (id, isDeleted = "false") => {
-    try {
-        return await publicInstance.get(`/course/${id}?isDeleted=${isDeleted}`);
-    } catch (error) {
-        return Promise.reject(error);
-    }
-};
 
 export const softDeleteCourse = async (id) => {
     try {
@@ -429,63 +646,29 @@ export const getCourseByName = async (
     }
 };
 
-export const softDeleteCategoryById = (id) => {
-    try {
-        return privateInstance.put(`/category/delete/soft/${id}`);
-    } catch (error) {
-        Promise.reject(error);
-    }
-};
-
-export const hardDeleteCategoryById = (id) => {
-    try {
-        return privateInstance.delete(`/category/delete/hard/${id}`);
-    } catch (error) {
-        Promise.reject(error);
-    }
-};
-export const restoreCategoryById = (id) => {
-    try {
-        return privateInstance.put(`/category/restore/${id}`);
-    } catch (error) {
-        Promise.reject(error);
-    }
-};
-
-export const getCategoryByTitle = (name, page = 0, selected = 5) => {
-    console.log(name);
-    try {
-        return publicInstance.get(
-            `/category?name=${name}&page=${page}&selected`
-        );
-    } catch (error) {
-        Promise.reject(error);
-    }
-};
-
-export const editCategory = (id, category) => {
-    try {
-        return privateInstance.put(`/category/${id}`, category);
-    } catch (error) {
-        Promise.reject(error);
-    }
-};
-
-export const getCategoryById = (id) => {
-    try {
-        return publicInstance.get(`/category/${id}`);
-    } catch (error) {
-        return Promise.reject(error);
-    }
-};
-
-export const createCategory = (category) => {
-    try {
-        return privateInstance.post(`/category/create`, category);
-    } catch (error) {
-        return Promise.reject(error);
-    }
-};
+export const getCategories = async () => {
+    return privateInstance.get(`/categories`);
+  };
+  
+  // Tạo mới category
+  export const createCategory = async (categoryDTO) => {
+    return privateInstance.post("/categories", categoryDTO);
+  };
+  
+  // Lấy chi tiết 1 category
+  export const getCategoryById = async (id) => {
+    return publicInstance.get(`/categories/${id}`);
+  };
+  
+  // Cập nhật category
+  export const updateCategory = async (id, categoryDTO) => {
+    return privateInstance.put(`/categories/${id}`, categoryDTO);
+  };
+  
+  // Xóa category
+  export const hardDeleteCategory = async (id) => {
+    return privateInstance.delete(`/categories/delete/hard/${id}`);
+  };
 
 export const restoreCourseById = (id) => {
     try {

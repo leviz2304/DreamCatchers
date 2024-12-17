@@ -1,20 +1,35 @@
+// src/main/java/com/example/demo/dto/CommentDTO.java
 package com.example.demo.dto;
 
-import lombok.Builder;
+import com.example.demo.entity.data.Comment;
 import lombok.Data;
-import org.springframework.context.annotation.Bean;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Data
-@Builder
 public class CommentDTO {
-    private String email;
-    private String userName;
+    private Integer id;
     private String content;
-    private String path;
-    private int lessonId;
-    private boolean sub;
+    private LocalDateTime createdAt;
+    private String userName;
     private String avatar;
-    private int parentId;
-    private String replyToUser;
-    private String replyToUserName;
+    private List<CommentDTO> replies;
+
+    // Chuyển đổi từ entity sang DTO
+    public static CommentDTO fromEntity(Comment comment) {
+        CommentDTO dto = new CommentDTO();
+        dto.setId(comment.getId());
+        dto.setContent(comment.getContent());
+        dto.setCreatedAt(comment.getCreatedAt());
+        dto.setUserName(comment.getUser().getUsername()); // Giả sử bạn có phương thức getUsername
+        dto.setAvatar(comment.getUser().getAvatar()); // Giả sử bạn có trường avatar trong User
+        if (comment.getReplies() != null && !comment.getReplies().isEmpty()) {
+            dto.setReplies(comment.getReplies().stream()
+                    .map(CommentDTO::fromEntity)
+                    .collect(Collectors.toList()));
+        }
+        return dto;
+    }
 }
