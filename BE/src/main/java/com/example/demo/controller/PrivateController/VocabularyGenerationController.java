@@ -41,7 +41,6 @@ public class VocabularyGenerationController {
         String userEmail = authentication.getName();
         Integer userId = userService.findByEmail(userEmail).getId();
 
-        // Gọi GPT để tạo từ vựng
         List<Vocabulary> vocabularies = gptService.generateVocabulary(topic, quantity, level);
 
         // Tạo VocabularySet

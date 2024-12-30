@@ -232,7 +232,7 @@ function UserProfile({ adminOpen = false }) {
   
         {/* Main Content */}
         <main className="flex-1 p-4">
-          {/* {activeSection === "messages" && <Messages />} */}
+          {activeSection === "messages" && <Messages />}
           {activeSection === "settings" && <Settings />}
         </main>
       </div>

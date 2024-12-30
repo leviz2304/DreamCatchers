@@ -12,18 +12,20 @@ import {
 } from "@mui/material";
 import { motion } from "framer-motion";
 import { School, People, LibraryBooks, Article } from "@mui/icons-material";
-// import RecentComments from "./Comment";
+import RecentComments from "./Comment";
 import AdminEssayStatistics from "./Writing/AdminStatistics";
 import EssayDataTable from "./Writing/EssayDataTable";
 import { getAdminStatistics } from "../../api/apiService/dataService";
-
+import {getRecentComments} from "../../api/apiService/dataService"
 const Dashboard = () => {
   const [statistics, setStatistics] = useState({
-    totalCourses: 0,
-    totalStudents: 0,
-    totalInstructors: 0,
-    totalPosts: 0,
+    totalCourses: 1,
+    totalStudents: 1,
+    totalInstructors: 1,
+    totalPosts: 1,
   });
+  const [recentComments, setRecentComments] = useState([]);
+
   const theme = useTheme();
 
   const cardAnimation = {
@@ -32,12 +34,12 @@ const Dashboard = () => {
   };
 
   const stats = [
-    {
-      title: "Total Courses",
-      value: statistics.totalCourses,
-      icon: <LibraryBooks />,
-      gradient: "linear-gradient(135deg, #FF7A85, #FF3D54)",
-    },
+    // {
+    //   title: "Total Courses",
+    //   value: statistics.totalCourses,
+    //   icon: <LibraryBooks />,
+    //   gradient: "linear-gradient(135deg, #FF7A85, #FF3D54)",
+    // },
     {
       title: "Total Students",
       value: statistics.totalStudents,
@@ -50,14 +52,13 @@ const Dashboard = () => {
       icon: <School />,
       gradient: "linear-gradient(135deg, #74D3FF, #007BFF)",
     },
-    {
-      title: "Total Posts",
-      value: statistics.totalPosts,
-      icon: <Article />,
-      gradient: "linear-gradient(135deg, #A5FF72, #00D84A)",
-    },
+    // {
+    //   title: "Total Posts",
+    //   value: statistics.totalPosts,
+    //   icon: <Article />,
+    //   gradient: "linear-gradient(135deg, #A5FF72, #00D84A)",
+    // },
   ];
-
   useEffect(() => {
     const fetchStatistics = async () => {
       try {
@@ -67,7 +68,18 @@ const Dashboard = () => {
         console.error("Failed to fetch statistics:", error);
       }
     };
+
+    const fetchRecentComments = async () => {
+      try {
+        const response = await getRecentComments(5); // Get 5 most recent comments
+        setRecentComments(response);
+      } catch (error) {
+        console.error("Failed to fetch recent comments:", error);
+      }
+    };
+
     fetchStatistics();
+    fetchRecentComments();
   }, []);
 
   return (
@@ -81,7 +93,7 @@ const Dashboard = () => {
       {/* Statistics Section */}
       <Box
         display="grid"
-        gridTemplateColumns={{ xs: "repeat(2, 1fr)", md: "repeat(4, 1fr)" }}
+        gridTemplateColumns={{ xs: "repeat(2, 1fr)", md: "repeat(2, 1fr)" }}
         gap={3}
         sx={{ mb: 4 }}
       >
@@ -118,9 +130,9 @@ const Dashboard = () => {
                 sx={{ textAlign: "center" }}
               />
               <CardContent>
-                {/* <Typography variant="h4" align="center" color="inherit">
-                  {stat.value.toLocaleString()}
-                </Typography> */}
+                <Typography variant="h4" align="center" color="inherit">
+                  {stat.value}
+                </Typography>
               </CardContent>
             </Card>
           </motion.div>
@@ -148,7 +160,7 @@ const Dashboard = () => {
               boxShadow: "0 8px 16px rgba(0,0,0,0.1)",
             }}
           >
-            {/* <RecentComments /> */}
+            <RecentComments />
           </Paper>
         </motion.div>
 

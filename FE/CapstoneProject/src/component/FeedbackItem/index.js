@@ -1,142 +1,157 @@
 // src/components/FeedbackItem.js
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { FaChevronDown, FaChevronUp, FaVolumeUp, FaHeadphones, FaCheckCircle, FaExclamationTriangle, FaBookOpen } from "react-icons/fa";
+import tippy from 'tippy.js';
+import 'tippy.js/dist/tippy.css';
 
 function FeedbackItem({ fb, parseFeedback }) {
   const [isOpen, setIsOpen] = useState(false);
   const fbData = parseFeedback(fb.feedbackJson);
 
+  useEffect(() => {
+    if (fbData) {
+      tippy('[data-tippy-content]', {
+        allowHTML: true,
+        theme: 'light-border',
+        interactive: true,
+        arrow: true,
+      });
+    }
+  }, [fbData]);
+
   const toggleOpen = () => {
     setIsOpen(!isOpen);
   };
 
+  const renderErrorList = (title, icon, errors, typeColor) => {
+    if (!errors || errors.length === 0) {
+      return (
+        <div className="mt-3">
+          <h3 className={`font-semibold text-sm flex items-center space-x-2 text-${typeColor}-700`}>
+            {icon}
+            <span>{title}</span>
+          </h3>
+          <p className="text-sm text-gray-600 ml-6">No {title.toLowerCase()} errors</p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="mt-3">
+        <h3 className={`font-semibold text-sm flex items-center space-x-2 text-${typeColor}-700`}>
+          {icon}
+          <span>{title}</span>
+        </h3>
+        <ul className="mt-2 space-y-2 ml-6">
+          {errors.map((err, i) => (
+            <li 
+              key={i} 
+              className="bg-white border border-gray-200 rounded p-2 text-sm relative flex flex-col space-y-1"
+            >
+              {/* Original */}
+              {err.sentence && (
+                <div 
+                  data-tippy-content={`<strong>Gốc:</strong> ${err.sentence}<br/><strong>Lỗi:</strong> ${err.error}`}
+                  className="text-gray-800"
+                >
+                  <span className="font-bold text-red-600 mr-1">Gốc:</span>{err.sentence}
+                </div>
+              )}
+              {err.word && (
+                <div
+                  data-tippy-content={`<strong>Từ:</strong> ${err.word}<br/><strong>Lỗi:</strong> ${err.error}`}
+                  className="text-gray-800"
+                >
+                  <span className="font-bold text-red-600 mr-1">Word:</span>{err.word}
+                </div>
+              )}
+
+              {/* Recommendation */}
+              <div
+                data-tippy-content={`<strong>Sửa:</strong> ${err.recommendation}`}
+                className="text-gray-800"
+              >
+                <span className="font-bold text-green-700 mr-1">Sửa:</span>{err.recommendation}
+              </div>
+
+              {/* Error description */}
+              {err.error && (
+                <div className="text-gray-600 text-xs">
+                  <span className="font-semibold text-red-500 mr-1">Error:</span>{err.error}
+                </div>
+              )}
+            </li>
+          ))}
+        </ul>
+      </div>
+    );
+  };
+
   return (
-    <div className="bg-white p-4 rounded shadow text-sm text-gray-700">
+    <div className="bg-gray-50 p-4 rounded border border-gray-200 text-sm text-gray-700">
       <div
-        className="flex justify-between items-center cursor-pointer"
+        className="flex justify-between items-center cursor-pointer hover:bg-gray-100 p-2 rounded transition-colors"
         onClick={toggleOpen}
       >
         <div>
-          <h3 className="font-medium">Feedback ID: {fb.id}</h3>
-          <p className="text-sm text-gray-500">
-            {new Date(fb.submissionTime).toLocaleString()}
-          </p>
-        </div>
-        <div className="ml-4">
-          {isOpen ? (
-            // Icon for collapse (e.g., minus)
-            <svg
-              className="w-6 h-6 text-gray-500"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M20 12H4"
-              />
-            </svg>
-          ) : (
-            // Icon for expand (e.g., plus)
-            <svg
-              className="w-6 h-6 text-gray-500"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 4v16m8-8H4"
-              />
-            </svg>
+          <h3 className="font-semibold text-gray-800">Feedback ID: {fb.id}</h3>
+          {fb.submissionTime && (
+            <p className="text-xs text-gray-500 mt-1">
+              {new Date(fb.submissionTime).toLocaleString()}
+            </p>
           )}
+        </div>
+        <div className="ml-4 text-gray-500">
+          {isOpen ? <FaChevronUp /> : <FaChevronDown />}
         </div>
       </div>
 
-      {isOpen && (
-        <div className="mt-4">
-          <p className="mb-2">
-            <strong>Transcript:</strong> {fb.transcript}
-          </p>
-          {fb.audioUrl && (
-            <div className="mb-2">
-              <p className="font-medium mb-1">Audio:</p>
-              <audio controls src={fb.audioUrl} className="w-full" />
+      {isOpen && fbData && (
+        <div className="mt-4 space-y-4">
+          {/* Transcript */}
+          {fb.transcript && (
+            <div className="bg-white p-3 rounded border border-gray-200">
+              <h4 className="flex items-center space-x-2 text-gray-700 font-semibold">
+                <FaVolumeUp className="text-indigo-500"/>
+                <span>Transcript</span>
+              </h4>
+              <p className="text-sm text-gray-700 mt-1 leading-relaxed">{fb.transcript}</p>
             </div>
           )}
 
-          {fbData ? (
-            <div className="mt-2">
-              {/* Pronunciation Errors */}
-              <h3 className="font-medium">Pronunciation Errors:</h3>
-              {fbData.pronunciationErrors && fbData.pronunciationErrors.length > 0 ? (
-                <ul className="list-disc list-inside">
-                  {fbData.pronunciationErrors.map((pe, i) => (
-                    <li key={i}>
-                      <strong>Word:</strong> {pe.word}
-                      <br/>
-                      <strong>Error:</strong> {pe.error},{" "}
-                      <br/>
-
-                      <strong>Recommendation:</strong> {pe.recommendation}
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p>No pronunciation errors</p>
-              )}
-
-              {/* Grammar Errors */}
-              <h3 className="font-medium mt-2">Grammar Errors:</h3>
-              {fbData.grammarErrors && fbData.grammarErrors.length > 0 ? (
-                <ul className="list-disc list-inside">
-                  {fbData.grammarErrors.map((ge, i) => (
-                    <li key={i}>
-                      <strong>Sentence:</strong> {ge.sentence}
-                      <br/>
-                      <strong>Error:</strong> {ge.error}
-                      <br/>
-
-                      <strong>Recommendation:</strong> {ge.recommendation}
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p>No grammar errors</p>
-              )}
-
-              {/* Vocabulary Errors */}
-              <h3 className="font-medium mt-2">Vocabulary Errors:</h3>
-              {fbData.vocabularyErrors && fbData.vocabularyErrors.length > 0 ? (
-                <ul className="list-disc list-inside">
-                  {fbData.vocabularyErrors.map((ve, i) => (
-                    <li key={i}>
-                      <strong>Word:</strong> {ve.word}
-                      <br/>
-                      <strong>Error:</strong> {ve.error}
-                      <br/>
-
-                      <strong>Recommendation:</strong> {ve.recommendation}
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p>No vocabulary errors</p>
-              )}
-
-              {/* Overall Feedback */}
-              <h4 className="font-medium mt-2">Overall Feedback:</h4>
-              <p>{fbData.overallFeedback}</p>
+          {/* Audio */}
+          {fb.audioUrl && (
+            <div className="bg-white p-3 rounded border border-gray-200">
+              <h4 className="flex items-center space-x-2 text-gray-700 font-semibold">
+                <FaHeadphones className="text-indigo-500"/>
+                <span>Audio</span>
+              </h4>
+              <audio controls src={fb.audioUrl} className="w-full mt-2" />
             </div>
-          ) : (
-            <p className="text-gray-500">No detailed feedback data</p>
+          )}
+
+          {/* Errors */}
+          <div>
+            {renderErrorList("Pronunciation Errors", <FaExclamationTriangle/>, fbData.pronunciationErrors, "blue")}
+            {renderErrorList("Grammar Errors", <FaCheckCircle/>, fbData.grammarErrors, "red")}
+            {renderErrorList("Vocabulary Errors", <FaBookOpen/>, fbData.vocabularyErrors, "yellow")}
+          </div>
+
+          {/* Overall Feedback */}
+          {fbData.overallFeedback && (
+            <div className="bg-white p-3 rounded border border-gray-200">
+              <h4 className="text-gray-800 font-semibold flex items-center space-x-2">
+                <FaCheckCircle className="text-green-500"/>
+                <span>Overall Feedback</span>
+              </h4>
+              <p className="text-sm text-gray-700 mt-1 leading-relaxed">{fbData.overallFeedback}</p>
+            </div>
           )}
         </div>
+      )}
+
+      {isOpen && !fbData && (
+        <p className="text-gray-500 mt-4">No detailed feedback data</p>
       )}
     </div>
   );

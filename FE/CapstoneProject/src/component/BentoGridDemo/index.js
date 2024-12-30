@@ -51,9 +51,7 @@ const BentoGridDemo = () => {
               icon={
                 <div className="flex items-center text-orange-500 font-semibold">
                   <span>★ {course.rating || "5.0"}</span>
-                  <span className="ml-2 text-gray-500">
-                    {course.students || 0} students
-                  </span>
+                  
                 </div>
               }
               categories={course.categoryIds} 

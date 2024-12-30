@@ -3,7 +3,9 @@ package com.example.demo.controller.PrivateController;
 
 import com.example.demo.dto.CommentDTO;
 import com.example.demo.entity.data.Comment;
+import com.example.demo.entity.user.User;
 import com.example.demo.service.CommentService;
+import com.example.demo.service.UserService;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -22,7 +24,8 @@ public class CommentController {
 
     @Autowired
     private CommentService commentService;
-
+    @Autowired
+    private UserService userService;
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
 
@@ -43,8 +46,9 @@ public class CommentController {
             @RequestBody CommentRequest commentRequest,
             Principal principal) {
         // Lấy userId từ Principal
-        String userIdStr = principal.getName();
-        Integer userId = Integer.parseInt(userIdStr); // Đảm bảo rằng principal.getName() trả về userId dưới dạng String
+        String email = principal.getName(); // Lấy email từ principal
+        User user = userService.findByEmail(email); // Tìm user trong DB bằng email
+        Integer userId = user.getId(); // Lấy id từ đối tượng user
         String content = commentRequest.getContent();
         Integer parentCommentId = commentRequest.getParentCommentId();
 

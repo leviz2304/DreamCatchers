@@ -1,6 +1,8 @@
 package com.example.demo.service;
 
 import com.example.demo.entity.data.Vocabulary;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -19,6 +21,8 @@ public class GPTService {
 
     private final String OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
 
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
     public List<Vocabulary> generateVocabulary(String topic, int quantity, String level) {
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
@@ -26,16 +30,23 @@ public class GPTService {
         headers.setBearerAuth(openAIApiKey);
 
         JSONObject requestBody = new JSONObject();
-        requestBody.put("model", "gpt-4"); // hoặc mô hình bạn muốn sử dụng
+        requestBody.put("model", "gpt-4o-mini");
         JSONArray messages = new JSONArray();
+
         JSONObject systemMessage = new JSONObject();
         systemMessage.put("role", "system");
-        systemMessage.put("content", "Bạn là một trợ lý giúp tạo danh sách từ vựng.");
+        systemMessage.put("content", "You are a JSON-producing assistant. Respond ONLY with a JSON array of vocabulary items. " +
+                "Each item is a JSON object: {\"word\":\"...\", \"definition\":\"...\", \"example\":\"...\"}. " +
+                "No additional text, no explanation, no code fences outside the JSON. If unsure, return [].");
         JSONObject userMessage = new JSONObject();
         userMessage.put("role", "user");
         userMessage.put("content", String.format(
-                "Hãy tạo một danh sách gồm %d từ vựng về chủ đề '%s' ở mức độ '%s'. Đối với mỗi từ, hãy cung cấp định nghĩa và một ví dụ sử dụng.",
+                "Generate a JSON array of %d vocabulary items about topic '%s' at '%s' level. " +
+                        "Each item must have: \"word\", \"definition\", \"example\" keys. " +
+                        "Do not include any text outside of the JSON array. " +
+                        "If you cannot produce the result, just return an empty JSON array [].",
                 quantity, topic, level));
+
         messages.put(systemMessage);
         messages.put(userMessage);
         requestBody.put("messages", messages);
@@ -49,40 +60,52 @@ public class GPTService {
                 JSONArray choices = responseBody.getJSONArray("choices");
                 String content = choices.getJSONObject(0).getJSONObject("message").getString("content");
 
-                // Phân tích nội dung trả về để trích xuất từ vựng
-                return parseVocabularyFromGPTResponse(content);
+                // Loại bỏ code fences nếu có
+                content = stripCodeFences(content).trim();
+
+                // Parse JSON array
+                return parseVocabularyJSON(content);
             } else {
                 throw new RuntimeException("GPT API request failed with status: " + response.getStatusCode());
             }
         } catch (Exception e) {
-            throw new RuntimeException("Error while calling GPT API: " + e.getMessage());
+            throw new RuntimeException("Error while calling GPT API: " + e.getMessage(), e);
         }
     }
 
-    private List<Vocabulary> parseVocabularyFromGPTResponse(String response) {
-        List<Vocabulary> vocabularies = new ArrayList<>();
-      
-        String[] lines = response.split("\n");
-        for (String line : lines) {
-            line = line.trim();
-            if (line.matches("^\\d+\\.\\s+.*")) {
-                int dotIndex = line.indexOf('.');
-                String content = line.substring(dotIndex + 1).trim();
-                String[] parts = content.split(":");
-                if (parts.length >= 2) {
-                    String word = parts[0].trim();
-                    String[] defAndEx = parts[1].split("\\. ");
-                    String definition = defAndEx[0].trim();
-                    String example = defAndEx.length > 1 ? defAndEx[1].trim() : "";
-                    Vocabulary vocab = Vocabulary.builder()
-                            .word(word)
-                            .definition(definition)
-                            .example(example)
-                            .build();
-                    vocabularies.add(vocab);
-                }
+    private List<Vocabulary> parseVocabularyJSON(String jsonArrayStr) {
+        try {
+            if (jsonArrayStr.isEmpty()) {
+                return new ArrayList<>();
+            }
+            // Kiểm tra nếu jsonArrayStr bắt đầu bằng [ và kết thúc bằng ]
+            if (!jsonArrayStr.trim().startsWith("[") || !jsonArrayStr.trim().endsWith("]")) {
+                throw new RuntimeException("Invalid JSON array format from GPT.");
+            }
+
+            // Parse JSON Array trực tiếp sang List<Vocabulary>
+            List<Vocabulary> vocabList = objectMapper.readValue(jsonArrayStr, new TypeReference<List<Vocabulary>>(){});
+            return vocabList;
+        } catch (Exception e) {
+            // Nếu lỗi parse, bạn có thể retry hoặc trả về empty list
+            System.err.println("Error parsing vocabulary JSON: " + e.getMessage());
+            throw new RuntimeException("Failed to parse GPT JSON response.");
+        }
+    }
+
+    private String stripCodeFences(String content) {
+        // Xóa ```json ở đầu và ``` ở cuối nếu có
+        if (content.startsWith("```")) {
+            // Tìm dòng xuống hàng đầu tiên
+            int firstNewline = content.indexOf("\n");
+            if (firstNewline != -1) {
+                content = content.substring(firstNewline + 1);
+            }
+            // Xóa 3 backticks cuối
+            if (content.endsWith("```")) {
+                content = content.substring(0, content.length() - 3);
             }
         }
-        return vocabularies;
+        return content;
     }
 }

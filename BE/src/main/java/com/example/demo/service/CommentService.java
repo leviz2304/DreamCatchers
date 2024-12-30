@@ -4,7 +4,8 @@ package com.example.demo.service;
 import com.example.demo.entity.data.Comment;
 import com.example.demo.entity.data.Course;
 import com.example.demo.entity.user.User;
-import com.example.demo.repository.CommentRepository;
+import com.example.demo.repository.data.CommentRepository;
+import com.example.demo.repository.data.CommentRepository;
 import com.example.demo.repository.data.CourseRepository;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.repository.data.EnrollmentRepository;
@@ -18,7 +19,7 @@ import java.util.List;
 public class CommentService {
 
     @Autowired
-    private CommentRepository commentRepository;
+    private com.example.demo.repository.data.CommentRepository commentRepository;
 
     @Autowired
     private CourseRepository courseRepository;
@@ -64,5 +65,8 @@ public class CommentService {
                 .build();
 
         return commentRepository.save(comment);
+    }
+    public List<Comment> getRecentComments(int limit) {
+        return commentRepository.findTopByOrderByCreatedAtDesc(limit);
     }
 }

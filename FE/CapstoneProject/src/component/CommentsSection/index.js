@@ -1,7 +1,6 @@
 // src/components/CommentsSection.js
 import React, { useEffect, useState, useContext } from "react";
 import { useSelector } from "react-redux";
-import moment from "moment";
 import { toast } from "sonner";
 import { StompContext } from "../../context/StompContext";
 import avatarPlaceholder from "../../assets/images/Avatar.png";
@@ -9,7 +8,7 @@ import CommentItem from "../CommentItem";
 import {
     getCommentsByCourseId,
     addComment
-} from "../../api/apiService/dataService"; // Import các hàm API mới thêm
+} from "../../api/apiService/dataService";
 
 export default function CommentsSection({ courseId, lessonId }) {
     const userInfo = useSelector((state) => state.login.user);
@@ -32,24 +31,19 @@ export default function CommentsSection({ courseId, lessonId }) {
 
         fetchComments();
 
-        let subscription = null;
-
-        if (stompClient && stompClient.active) {
-            subscription = subscribeToComments();
+        if (stompClient) {
+            // Chờ đến khi STOMP kết nối thành công mới subscribe
+            stompClient.onConnect = () => {
+                console.log("Connected to STOMP");
+                subscribeToComments();
+            };
         }
 
-        // Lắng nghe sự kiện khi stompClient được kết nối
-        const onConnect = () => {
-            subscription = subscribeToComments();
-        };
+        // Không subscribe ngay lập tức ở đây
+        // onConnect sẽ lo việc đó
 
-        stompClient.onConnect = onConnect;
+        // return () => { ... nếu cần unsubscribe }
 
-        return () => {
-            if (subscription) {
-                subscription.unsubscribe();
-            }
-        };
     }, [courseId, stompClient]);
 
     const fetchComments = async () => {
@@ -63,14 +57,12 @@ export default function CommentsSection({ courseId, lessonId }) {
     };
 
     const subscribeToComments = () => {
-        if (!stompClient) return;
+        if (!stompClient || !stompClient.active) return;
 
-        const subscription = stompClient.subscribe(`/topic/comments/${courseId}`, (message) => {
+        stompClient.subscribe(`/topic/comments/${courseId}`, (message) => {
             const newComment = JSON.parse(message.body);
             setComments((prevComments) => [...prevComments, newComment]);
         });
-
-        return subscription;
     };
 
     const sendValue = async (isSub) => {
@@ -90,12 +82,9 @@ export default function CommentsSection({ courseId, lessonId }) {
 
         try {
             const res = await addComment(courseId, data);
-            // Gửi bình luận mới qua WebSocket để các client khác nhận được
-            stompClient.publish({
-                destination: `/app/comment/lesson/${lessonId}`,
-                body: JSON.stringify(res),
-            });
-
+            // Bỏ stompClient.publish
+            // Server đã convertAndSend sau khi comment thành công
+            
             if (isSub) {
                 setSubComment({
                     content: "",
@@ -157,10 +146,8 @@ export default function CommentsSection({ courseId, lessonId }) {
 
     return (
         <div className="mt-8">
-            {/* Tiêu đề Comments */}
             <h3 className="text-xl font-semibold text-gray-800">Comments ({comments.length})</h3>
 
-            {/* Comment Input */}
             <div className="mt-6 flex items-start space-x-4">
                 <img
                     src={userInfo.avatar || avatarPlaceholder}
@@ -186,7 +173,6 @@ export default function CommentsSection({ courseId, lessonId }) {
                 </div>
             </div>
 
-            {/* Comments List */}
             <div className="mt-8 space-y-6">
                 {renderComments(comments.filter((c) => c.parentCommentId === null))}
             </div>

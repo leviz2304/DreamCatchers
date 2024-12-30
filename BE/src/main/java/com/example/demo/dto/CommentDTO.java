@@ -16,7 +16,7 @@ public class CommentDTO {
     private String userName;
     private String avatar;
     private List<CommentDTO> replies;
-
+    private Integer parentCommentId;
     // Chuyển đổi từ entity sang DTO
     public static CommentDTO fromEntity(Comment comment) {
         CommentDTO dto = new CommentDTO();
@@ -25,6 +25,7 @@ public class CommentDTO {
         dto.setCreatedAt(comment.getCreatedAt());
         dto.setUserName(comment.getUser().getUsername()); // Giả sử bạn có phương thức getUsername
         dto.setAvatar(comment.getUser().getAvatar()); // Giả sử bạn có trường avatar trong User
+        dto.setParentCommentId(comment.getParentComment() == null ? null : comment.getParentComment().getId());
         if (comment.getReplies() != null && !comment.getReplies().isEmpty()) {
             dto.setReplies(comment.getReplies().stream()
                     .map(CommentDTO::fromEntity)

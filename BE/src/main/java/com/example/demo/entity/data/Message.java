@@ -1,5 +1,6 @@
 package com.example.demo.entity.data;
 
+import com.example.demo.entity.data.Course;
 import com.example.demo.entity.user.User;
 import jakarta.persistence.*;
 import lombok.*;
@@ -7,34 +8,37 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity
+@Table(name = "messages")
 @Getter
 @Setter
-@Builder
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Message {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "sender_id", nullable = false)
-    private User sender;
+    private User sender; // Người gửi
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "receiver_id", nullable = false)
-    private User receiver;
+    private User receiver; // Người nhận
 
-    @Column(nullable = false)
-    private String content;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "course_id", nullable = false)
+    private Course course; // Khóa học liên quan
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 2000)
+    private String content; // Nội dung tin nhắn
+
     private LocalDateTime timestamp;
 
-    @Column(nullable = false)
-    private boolean isRead;
-
-    @Column(nullable = false)
-    private String chatRoomId;
+    @PrePersist
+    protected void onCreate() {
+        timestamp = LocalDateTime.now();
+    }
 }

@@ -89,7 +89,18 @@ export const getAllCategoryDeleted = async (page, size) => {
     }
 };
 
+export const fetchInstructors = async (userId) => {
+    return await privateInstance.get(`chat/instructors/${userId}`);
+};
 
+export const fetchStudents = async (tutorId) => {
+    return await privateInstance.get(`chat/students/${tutorId}`);
+};
+
+// Lấy conversation giữa userId và contactId cho 1 khóa học (courseId)
+export const getConversation = async (userId, contactId, courseId) => {
+    return await privateInstance.get(`/messages/${userId}/${contactId}?courseId=${courseId}`);
+};
 
 export const getRecentComments = async (limit = 2) => {
     const response = await privateInstance.get(`/dashboard/comments?limit=${limit}`);

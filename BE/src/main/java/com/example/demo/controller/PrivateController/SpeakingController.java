@@ -157,7 +157,6 @@ public class SpeakingController {
     @PostMapping("/generate-answer")
     public ResponseEntity<ResponseObject> generateAnswer(@RequestBody AIChatRequestDTO chatRequest) {
         try {
-            // Gọi service để tạo câu trả lời
             String aiAnswer = speakingService.generateAnswer(chatRequest);
             return ResponseEntity.ok(ResponseObject.builder()
                     .status(HttpStatus.OK)

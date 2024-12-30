@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -24,6 +25,9 @@ public class UserService {
     public ResponseObject getAllUser() {
         var users = userRepository.findAll();
         return ResponseObject.builder().status(HttpStatus.OK).mess("Get data successfully").status(HttpStatus.OK).content(users).build();
+    }
+    public Optional<User> findById(Integer id) {
+        return userRepository.findById(id);
     }
 
     public ResponseObject getAllRole() {

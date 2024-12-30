@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { generateVocabularySet } from '../../../api/apiService/dataService';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
+import { FaPlus, FaSpinner } from 'react-icons/fa';
 
 const CreateVocabularySet = () => {
     const [topic, setTopic] = useState('');
@@ -17,7 +18,7 @@ const CreateVocabularySet = () => {
         setLoading(true);
         setError('');
         try {
-            const data = await generateVocabularySet(topic, quantity, level);
+            await generateVocabularySet(topic, quantity, level);
             toast.success('Tạo bộ từ vựng thành công');
             navigate(`/IELTS/VOCAB/sets`);
         } catch (err) {
@@ -29,11 +30,11 @@ const CreateVocabularySet = () => {
     };
 
     return (
-        <div className="max-w-md mx-auto p-4">
-            <h2 className="text-2xl font-bold mb-4">Tạo Bộ Từ Vựng Mới</h2>
+        <div className="max-w-md mx-auto p-4 mt-20 bg-white border border-gray-200 rounded-md shadow">
+            <h2 className="text-2xl font-bold mb-4 text-gray-800">Tạo Bộ Từ Vựng Mới</h2>
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                    <label className="block text-sm font-medium">Chủ đề</label>
+                    <label className="block text-sm font-medium text-gray-700">Chủ đề</label>
                     <input
                         type="text"
                         value={topic}
@@ -43,7 +44,7 @@ const CreateVocabularySet = () => {
                     />
                 </div>
                 <div>
-                    <label className="block text-sm font-medium">Số lượng từ</label>
+                    <label className="block text-sm font-medium text-gray-700">Số lượng từ</label>
                     <input
                         type="number"
                         value={quantity}
@@ -54,7 +55,7 @@ const CreateVocabularySet = () => {
                     />
                 </div>
                 <div>
-                    <label className="block text-sm font-medium">Mức độ</label>
+                    <label className="block text-sm font-medium text-gray-700">Mức độ</label>
                     <select
                         value={level}
                         onChange={(e) => setLevel(e.target.value)}
@@ -66,13 +67,14 @@ const CreateVocabularySet = () => {
                         <option value="Advanced">Advanced</option>
                     </select>
                 </div>
-                {error && <div className="text-red-500">{error}</div>}
+                {error && <div className="text-red-500 text-sm">{error}</div>}
                 <button
                     type="submit"
                     disabled={loading}
-                    className="w-full bg-blue-500 text-white py-2 rounded-md"
+                    className="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 transition flex items-center justify-center space-x-2"
                 >
-                    {loading ? 'Đang tạo...' : 'Tạo Bộ Từ Vựng'}
+                    {loading ? <FaSpinner className="animate-spin"/> : <FaPlus />}
+                    <span>{loading ? 'Đang tạo...' : 'Tạo Bộ Từ Vựng'}</span>
                 </button>
             </form>
         </div>
